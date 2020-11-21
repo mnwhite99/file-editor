@@ -1,3 +1,14 @@
 database
 flowcharts
 matrix lang
+
+e.g.
+
+​     + name                  +
+     +-----------------------+
+-----O a                     |
+     |                     c O-----
+-----O b                     |
+     +-----------------------+
+
+where a, b, and c are matrices.
