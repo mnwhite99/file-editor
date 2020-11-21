@@ -4,22 +4,15 @@
 
 <body>
     <div id = "toolbar">
-        <div id = "fileLoadContainer">
-            <input id = "fileSelect" class = "fileSelect" type = "file" title = "Load file"></input>
+        <div id = "fileSelect" title = "Load file" class = "tapCtrl">
+            <!--<div id = "fileSelect" title = "Load file"></input>-->
         </div>
+        <div id = "dbBrowser"></div>
         <div id = "fileNew" title = "Create new file" class = "tapCtrl">new</div>
         <div id = "fileSave" title = "Save to current file" class = "tapCtrl">save</div>
         <div id = "fileSaveAs" title = "Save in new file" class = "tapCtrl">save as</div>
         <div id = "darker"  title = "Make the background darker" class = "tapCtrl">darker</div>
         <div id = "lighter" title = "Make the background lighter" class = "tapCtrl">lighter</div>
-        <!--
-        <div id = "dirList"></div>
-        <div id = "addLibFileContainer">
-            <input multiple id = "addLibFile" class = "fileSelect" type = "file" title = "Add files to library"></input>
-        </div>
-        -->
-        <div id = "configOptions">
-        </div>
     </div>
     <div id = "editor">
         <textarea class = "scroll" id = "textareaEntry" wrap = "hard" autofocus = "true"

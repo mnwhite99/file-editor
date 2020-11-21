@@ -118,10 +118,10 @@ textareaEntry.addEventListener('input', function() {
     localStorage.setItem('text', text);
 });
 
-let configVisibility = 'hidden';
-document.getElementById('config').onclick = function() {
-    let configOptions = document.getElementById('configOptions');
-    if (configVisibility === 'hidden') configVisibility = 'visible';
-    else configVisibility = 'hidden';
-    configOptions.style.setProperty('visibility', configVisibility);
+let dbBrowserVis = 'hidden';
+document.getElementById('fileSelect').onclick = function() {
+    let dbBrowser = document.getElementById('dbBrowser');
+    if (dbBrowserVis === 'hidden') dbBrowserVis = 'visible';
+    else dbBrowserVis = 'hidden';
+    dbBrowser.style.setProperty('visibility', dbBrowserVis);
 }
