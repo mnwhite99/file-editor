@@ -1,0 +1,194 @@
+body {
+    font-family: monospace;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    color: var(--color_fg);
+    background-color: var(--color_bg);
+    caret-color: var(--color_fg);
+}
+
+:root {
+    --color_bg: #ffffff;
+    --color_fg: #000000;
+    --color_hl: #000000fe;
+}
+
+::selection {
+    color: var(--color_bg);
+    background-color: var(--color_hl);
+}
+
+:-webkit-any-link {
+    color: var(--color_fg);
+}
+
+.borderless_form {
+    border-style: hidden;
+}:focus {
+    outline: none;
+}
+
+.tapCtrl {
+    width: 80px;
+    height: 80px;
+    font-size: 16px;
+    text-align: center;
+    line-height: 80px;
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+#toolbar {
+    display: flex;
+    width: 100%;
+    height: 80px;
+    color: var(--color_fg);
+    background-color: var(--color_bg);
+    border-bottom: 1px solid var(--color_fg);
+    user-select: none;
+    flex: 0px;
+}
+
+#fileLoadContainer {
+    display: inline-block;
+    overflow: hidden;
+    width: 240px;
+    height: 80px;
+    border-right: 1px solid var(--color_fg);
+}
+
+.fileSelect {
+    float: right;
+    width: 600px;
+    height: 80px;
+    background-color: var(--color_bg);
+    cursor: pointer;
+}
+
+#fileSave {
+    display: inline-block;
+    overflow: hidden;
+    width: 80px;
+    height: 80px;
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+}
+
+#fileSaveAs {
+    display: inline-block;
+    overflow: hidden;
+    width: 80px;
+    height: 80px;
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+}
+
+#fileNew {
+    display: inline-block;
+    overflow: hidden;
+    width: 80px;
+    height: 80px;
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+}
+
+#configOptions {
+    visibility: hidden;
+    position: absolute;
+    left: 240px;
+    top: 80px;
+    display: flex;
+    flex: 0px;
+    border-left: 1px solid var(--color_fg);
+    border-bottom: 1px solid var(--color_fg);
+    border-top: 1px solid var(--color_fg);
+}
+
+#darker {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    background-color: var(--color_bg);
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+}
+
+#lighter {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    background-color: var(--color_bg);
+    border-right: 1px solid var(--color_fg);
+    cursor: pointer;
+    
+}
+
+#dirList {
+    position: fixed;
+    top: 0px;
+    right: 80px;
+    width: 239px;
+    height: 80px;
+    border-left: 1px solid var(--color_fg);
+}
+
+#addLibFileContainer {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    overflow: hidden;
+    width: 80px;
+    height: 80px;
+    border-left: 1px solid var(--color_fg);
+}
+
+#editor {
+    display: inline-block;
+    width: 100%;
+    height: calc(100% - 80px);
+    color: var(--color_fg);
+    background-color: var(--color_bg);
+}
+
+#library {
+    float: left;
+    width: 319px;
+    height: 100%;
+    border-left: 1px solid var(--color_fg);
+    overflow: hidden;
+}
+
+#textareaEntry {
+    float: left;
+    width: calc(100% - 320px);
+    height: 100%;
+    resize: none;
+    border-style: hidden;
+    font-size: 18px;
+    color: var(--color_fg);
+    background-color: var(--color_bg);
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 30px;
+}:focus {
+    outline: none;
+}
+
+::-webkit-scrollbar {
+    width: 20px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color_bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color_fg);
+    border: 5px solid var(--color_bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    border: 3px solid var(--color_bg);
+}
