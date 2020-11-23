@@ -6,7 +6,7 @@ setColors();
 let reader = new FileReader();
 let libReaderWait = 0;
 
-/// Database
+/// Database //////////////////////////////////////////////////////////////////////////////////////
 let db = null;
 let openDb = window.indexedDB.open('db', 4);
 openDb.onerror = function(event) {
@@ -24,21 +24,17 @@ openDb.onsuccess = function(event) {
     db = openDb.result;
 }
 
-/// Toolbar
 
-/// File selectors
-let fileSelect = document.getElementById('fileSelect');
-fileSelect.addEventListener('input', function() {
-    let file = fileSelect.files[0];
-    console.log(file);
-    reader.readAsText(file);
-});
+let dbVis = 'hidden';
+document.getElementById('openFromDB').onclick = function() {
+    let dbBrowser = document.getElementById('dbBrowser');
+    if (dbVis === 'hidden') dbVis = 'visible';
+    else dbVis = 'hidden';
+    dbBrowser.style.setProperty('visibility', dbVis);
+}
 
-reader.addEventListener('load', function() {
-    let text = reader.result;
-    textareaEntry.innerHTML = text;
-    localStorage.setItem('text', text);
-});
+/// Toolbar ///////////////////////////////////////////////////////////////////////////////////////
+
 /*
 let libDirList = [];
 let addLibFile = document.getElementById('addLibFile');
@@ -93,11 +89,13 @@ function setColors() {
         color_fg = '#ffffff';
     }
 
-    docStyle.setProperty('--color_bg', color_bg);
-    docStyle.setProperty('--color_fg', color_fg);
-    docStyle.setProperty('--color_hl', docStyle.getPropertyValue('--color_fg') + 'fe');
+    docStyle.setProperty('--color-bg', color_bg);
+    docStyle.setProperty('--color-fg', color_fg);
+    docStyle.setProperty('--color-hl', docStyle.getPropertyValue('--color-fg') + 'fe');
     localStorage.setItem('color', color.toString());
 }
+
+/// Project area //////////////////////////////////////////////////////////////////////////////////
 
 let textareaEntry = document.getElementById('textareaEntry');
 window.addEventListener('load', function() {
@@ -108,9 +106,11 @@ window.addEventListener('load', function() {
     textareaEntry.innerHTML = text;
 
     /// Library
+    /*
     text = localStorage.getItem('libText');
     if (text === undefined) text = '';
     library.innerHTML = text;
+    */
 });
 
 textareaEntry.addEventListener('input', function() {
@@ -118,10 +118,20 @@ textareaEntry.addEventListener('input', function() {
     localStorage.setItem('text', text);
 });
 
-let dbBrowserVis = 'hidden';
-document.getElementById('fileSelect').onclick = function() {
-    let dbBrowser = document.getElementById('dbBrowser');
-    if (dbBrowserVis === 'hidden') dbBrowserVis = 'visible';
-    else dbBrowserVis = 'hidden';
-    dbBrowser.style.setProperty('visibility', dbBrowserVis);
-}
+/// Library ///////////////////////////////////////////////////////////////////////////////////////
+
+/// File selectors
+let openFromFile = document.getElementById('openFromFile');
+openFromFile.addEventListener('input', function() {
+    let file = openFromFile.files[0];
+    console.log(file);
+    reader.readAsText(file);
+});
+
+reader.addEventListener('load', function() {
+    let text = reader.result;
+    textareaEntry.innerHTML = text;
+    localStorage.setItem('text', text);
+});
+
+/// Maintenance ///////////////////////////////////////////////////////////////////////////////////

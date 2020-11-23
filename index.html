@@ -1,24 +1,93 @@
 <head>
     <link rel = "stylesheet" href = "style.css" lang = "en">
 </head>
-
 <body>
     <div id = "toolbar">
-        <div id = "fileSelect" title = "Load file" class = "tapCtrl">
-            <!--<div id = "fileSelect" title = "Load file"></input>-->
+        <div id = "openFromDB" title = "Open project from database" class = "trigger">open db</div>
+        <div id = "openFromFileContainer">
+            <input id = "openFromFile" title = "Open project from file system" type = "file"></input>
         </div>
-        <div id = "dbBrowser"></div>
-        <div id = "fileNew" title = "Create new file" class = "tapCtrl">new</div>
-        <div id = "fileSave" title = "Save to current file" class = "tapCtrl">save</div>
-        <div id = "fileSaveAs" title = "Save in new file" class = "tapCtrl">save as</div>
-        <div id = "darker"  title = "Make the background darker" class = "tapCtrl">darker</div>
-        <div id = "lighter" title = "Make the background lighter" class = "tapCtrl">lighter</div>
+        <div id = "openFromFileText">open fs</div>
+        <div id = "fileNew" title = "Create new file" class = "trigger">new</div>
+        <div id = "fileSave" title = "Save to current file" class = "trigger">save</div>
+        <div id = "fileSaveAs" title = "Save in new file" class = "trigger">save as</div>
+        <div id = "darker" title = "Make the background darker" class = "trigger">darker</div>
+        <div id = "lighter" title = "Make the background lighter" class = "trigger">lighter</div>
     </div>
     <div id = "editor">
         <textarea class = "scroll" id = "textareaEntry" wrap = "hard" autofocus = "true"
             autocomplete = "false" spellcheck = "false"></textarea>
-        <div id = "library"></div>
+        <div id = "dbBrowser"></div>
+        <div id = "library" class = "scroll">
+            Components
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            #######################<br>
+            <div id = "components" class = "scroll"></div>
+        </div>
     </div>
+    <div id = "spacer"></div>
     <script type = "text/javascript" src = "main.js"></script>
 
 </body>
