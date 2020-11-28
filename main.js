@@ -95,6 +95,28 @@ function setColors() {
     localStorage.setItem('color', color.toString());
 }
 
+
+let flowMode = parseInt(localStorage.getItem('flowMode'));
+console.log(flowMode)
+setFlow();
+
+document.getElementById('flow').onclick = function() {
+    flowMode++;
+    setFlow();
+}
+
+function setFlow() {
+    let flowTrigger = document.getElementById('flow');
+    if (flowMode === 1) {
+        flowTrigger.innerHTML = 'flow >';
+    }
+    else {
+        flowMode = 0;
+        flowTrigger.innerHTML = '< text';
+    }
+    localStorage.setItem('flowMode', flowMode);
+}
+
 /// Project area //////////////////////////////////////////////////////////////////////////////////
 
 let textareaEntry = document.getElementById('textareaEntry');
@@ -135,3 +157,13 @@ reader.addEventListener('load', function() {
 });
 
 /// Maintenance ///////////////////////////////////////////////////////////////////////////////////
+
+/// Append ////////////////////////////////////////////////////////////////////////////////////////
+let onappend = new CustomEvent('onappend');
+function append(str, id) {
+    document.getElementById('scripts').innerHTML += str;
+    document.getElementById(id).addEventListener('onappend', function() {
+        document.getElementById(id).dispatchEvent('onappend');
+    })
+}
+append('<script id = "langSpec" type = "text/javascript" src = "langSpec.js" async></script>', 'langSpec');
