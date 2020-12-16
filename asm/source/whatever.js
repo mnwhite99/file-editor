@@ -22,10 +22,11 @@ class WeeWaa {
         let instr = tokens[0];
         let instrGroup = 0;
         let args = tokens.slice(1);
+        let iHexes = null;
         let destHexStr = '';
         let argsHexStr = '';
         let instrHexStr = '';
-        let iHexes = null;
+        let labelStr = '';
 
         let dest = args[0];
         let destType = -1
@@ -188,55 +189,67 @@ class WeeWaa {
                 }
                 else { instrGroup = -2; }
                 break;
+
+            default:
+                if (instr[0] = '.') {
+                    let labelNum = instr.split(1);
+                    labelStr = '0x'
+                }
+                break;
                 
         }
         if (iHexes !== null) {
             instrHexStr = '0x' + iHexes[destType];
         }
 
-        
+
         
         for (let i = 0; i < args.length; i++) {
             let arg = args[i];
-            let type = arg[0];
-            let content = arg.slice(1);
+            let argTag = arg[0];
+            let argContent = arg.slice(1);
+            let rIdx = parseInt(toString(argContent), 16);
+            if (i === 0) {
+                destHexStr = '0x21' + rIdx;
+                if (rIdx > this.rMax) {
+                    this.rMax = rIdx;
+                }
+                destHexStr += '\n';
+            }
+            else {
+                if (argTag === 'i' || argTag === 'I' || argTag === 'f' || argTag === 'F') {
+                    argsHexStr += '0x20' + rIdx;
+                    if (rIdx > this.rMax) {
+                        this.rMax = rIdx;
+                    }
+                }
+                else if (argTag === '#') {
+                    let immediateSubtype = arg[1];
+                    let immediateValue = arg.split(2);
+                    switch (immediateSubtype) {
+                        case 'i':
+                            argsHexStr += '0x41' + immediateValue;
+                            break;
+                        case 'I' :
+                            argsHexStr += '0x42' + immediateValue;
+                            break;
+                        case 'f':
+                            argsHexStr += '0x43' + immediateValue;
+                            break;
+                        case 'F':
+                            argsHexStr += '0x44' + immediateValue;
+                            break;
+                        default:
+                            break; 
+                    }
+                }
+                argsHexStr += '\n';
+            }
             switch (instrGroup) {
 
                 /// Binary operations
                 case 2:
-                    let rIdx = parseInt(toString(content), 16);
-                    if (i === 0) {
-                        destHexStr = '0x21' + rIdx + '\n';
-                        if (rIdx > this.rMax) { this.rMax = rIdx; }
-                    }
-                    else {
-                        if (type === 'i' || type === 'I' || type === 'f' || type === 'F') {
-                            argsHexStr += '0x20' + rIdx;
-                            if (rIdx > this.rMax) { this.rMax = rIdx; }
-                        }
-                        else if (type === '#') {
-                            let immediateSubtype = arg[1];
-                            let immediateValue = arg.split(2);
-                            switch (immediateSubtype) {
-                                case 'i':
-                                    argsHexStr += '0x41' + immediateValue;
-                                    break;
-                                case 'I' :
-                                    argsHexStr += '0x42' + immediateValue;
-                                    break;
-                                case 'f':
-                                    argsHexStr += '0x43' + immediateValue;
-                                    break;
-                                case 'F':
-                                    argsHexStr += '0x44' + immediateValue;
-                                    break;
-                                default:
-                                    break; 
-                            }
-                        }
-                        
-                        
-                    }
+                    
 
             }
         }
