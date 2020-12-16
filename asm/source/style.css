@@ -1,0 +1,117 @@
+:root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --hl: #000000fe;
+}
+
+body {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    font-family: monospace;
+    font-size: 16px;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    flex: 0px;
+    color: var(--fg);
+    background-color: var(--bg);
+    caret-color: var(--fg);
+}
+
+::selection {
+    color: var(--bg);
+    background-color: var(--hl);
+}
+
+.touchControl {
+    position: absolute;
+    height: calc(80px - 2px);
+    width: calc(80px - 2px);
+    border: 1px solid var(--fg);
+    border-bottom-width: 1px;
+    text-align: center;
+    line-height: calc(80px - 2px);
+    cursor: pointer;
+    user-select: none;
+}
+
+.touchControl:hover {
+    color: var(--bg);
+    background-color: var(--fg);
+}
+
+.touchControl:active {
+    color: var(--bg);
+    background-color: var(--fg);
+}
+
+#options {
+    left: 20px;
+    top: 20px;
+}
+
+#optionsMenu {
+    visibility: hidden;
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: calc(240px - 2px);
+    height: calc(500px - 2px);
+    background-color: var(--bg);
+    border: 1px solid var(--fg);
+    padding: 10px;
+    padding-top: 100px;
+}
+
+#name {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 120px;
+    overflow-wrap: anywhere;
+    user-select: none;
+}
+
+#textEntry {
+    position: absolute;
+    left: 400px;
+    top: 0px;
+    font-size: 16px;
+    border-style: hidden;
+    resize: none;
+    width: 360px;
+    height: 100%;
+    padding: 0px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-right: 20px;
+    overflow-y: scroll;
+    overflow-x: visible;
+    overflow-wrap: normal;
+    scrollbar-width: none;
+}:focus {
+    outline: none;
+}
+
+#display {
+    position: absolute;
+    left: 880px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent;
+}

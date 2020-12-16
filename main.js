@@ -97,7 +97,6 @@ function setColors() {
 
 
 let flowMode = parseInt(localStorage.getItem('flowMode'));
-console.log(flowMode)
 setFlow();
 
 document.getElementById('flow').onclick = function() {
@@ -159,11 +158,6 @@ reader.addEventListener('load', function() {
 /// Maintenance ///////////////////////////////////////////////////////////////////////////////////
 
 /// Append ////////////////////////////////////////////////////////////////////////////////////////
-let onappend = new CustomEvent('onappend');
-function append(str, id) {
-    document.getElementById('scripts').innerHTML += str;
-    document.getElementById(id).addEventListener('onappend', function() {
-        document.getElementById(id).dispatchEvent('onappend');
-    })
-}
-append('<script id = "langSpec" type = "text/javascript" src = "langSpec.js" async></script>', 'langSpec');
+document.write(
+    '<script id = "langSpec" type = "text/javascript" src = "langSpec.js" async></script>'
+);
