@@ -34,12 +34,45 @@ const instrList = {
     F2I: [1, [null, 'B0', null, null], [0, 1, 0, 0]],
     F2f: [1, [null, null, 'B6', null], [0, 0, 1, 0]]
 };
+const displayList = {
+    X0:  [],
+    Y0:  [],
+    X1:  [],
+    Y1:  [],
+    FIL: [],
+    BDR: [],
+    RCT: [],
+    LIN: [],
+    ARC: [],
+    SPL: [],
+    PLY: [],
+    TXT: [],
+    ML:  [],
+    MR:  [],
+    MX:  [],
+    MY:  []
+}
+const typeIdxs = { i: 0, I: 1, f: 2, F: 3 };
 
 class AsmDocument {
     constructor(str) {
         this.asmStr = '';
         this.rMax = 12;
         this.parseLines(str);
+    }
+
+    iToHex(str) {
+        let int = parseInt(str);
+        if (isNaN(int)) {
+            return undefined;
+        }
+        else {
+            return int.toString(16);
+        }
+    }
+
+    err(num) {
+        stop();
     }
 
     parseLines(str) {
@@ -51,8 +84,9 @@ class AsmDocument {
     }
 
     parseLine(str) {
+        let argsStr = '';
+        let instrStr = '';
         let destStr = '';
-
         let words = str.split(' ');
         let instr = words[0];
         let instrInfo = instrList[instr];
@@ -61,7 +95,7 @@ class AsmDocument {
 
             }
             else {
-
+                this.err(0);
             }
         }
         else {
@@ -69,114 +103,81 @@ class AsmDocument {
             if (args.length > 0) {
                 let dest = args[0];
                 let destType = dest[0];
-                let destTypeIdx = { i: 0, I: 1, f: 2, F: 3 }[destType];
+                let destTypeIdx = typeIdxs[destType];
                 if (destTypeIdx === undefined) {
-                    destTypeIdx = -1;
+                    this.err(1);
                 }
-                else {
+                else if (dest.length > 1) {
                     let destContent = dest.slice(1);
-                    let destContentStr = parseInt(destContent).toString(16);
-                    destStr = '21' + destContentStr + '\n';
-                }
-
-            }
-
-
-        }
-    }
-
-
-}
-
-class WeeWaa {
-    constructor(str) {
-        this.asmStr = '';
-        this.rMax = 12;
-        this.parseLines(str);
-    }
-
-    parseValue(valueStr) {
-
-    }
-
-    parseLines(str) {
-        let lines = str.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            this.parseLine(line);
-        }
-    }
-
-    parseLine(line) {
-        let tokens = line.split(' ');
-        let instr = tokens[0];
-        let instrGroup = 0;
-        let args = tokens.slice(1);
-        let iHexes = null;
-        let destHexStr = '';
-        let argsHexStr = '';
-        let instrHexStr = '';
-        let labelStr = '';
-
-        let dest = args[0];
-        let destType = -1
-        let destID = -1;
-        if (iHexes !== null) {
-            instrHexStr = '0x' + iHexes[Math.min(destType, iHexes.length)];
-        }
-
-
-        
-        for (let i = 0; i < args.length; i++) {
-            let arg = args[i];
-            let argTag = arg[0];
-            let argContent = arg.slice(1);
-            let rIdx = parseInt(toString(argContent), 16);
-            if (i === 0) {
-                destHexStr = '0x21' + rIdx;
-                if (rIdx > this.rMax) {
-                    this.rMax = rIdx;
-                }
-                destHexStr += '\n';
-            }
-            else {
-                if (argTag === 'i' || argTag === 'I' || argTag === 'f' || argTag === 'F') {
-                    argsHexStr += '0x20' + rIdx;
-                    if (rIdx > this.rMax) {
-                        this.rMax = rIdx;
+                    let destContentStr = this.iToHex(destContent);
+                    if (destContentStr === undefined) {
+                        this.err(2);
+                    }
+                    else {
+                        destStr = '21' + destContentStr + '\n';
                     }
                 }
-                else if (argTag === '#') {
-                    let immediateSubtype = arg[1];
-                    let immediateValue = arg.split(2);
-                    switch (immediateSubtype) {
-                        case 'i':
-                            argsHexStr += '0x41' + immediateValue;
-                            break;
-                        case 'I' :
-                            argsHexStr += '0x42' + immediateValue;
-                            break;
-                        case 'f':
-                            argsHexStr += '0x43' + immediateValue;
-                            break;
-                        case 'F':
-                            argsHexStr += '0x44' + immediateValue;
-                            break;
-                        default:
-                            break; 
+
+                /// Instruction
+                instrStr = instrInfo[1][destTypeIdx];
+
+                /// Arguments
+                for (let i = 1; i < args.length; i++) {
+                    let arg = args[i];
+                    let argType = arg[0];
+                    let argTypeIdx = typeIdxs[argType];
+
+                    /// Immediates
+                    if (argTypeIdx === undefined) {
+                        if (argType === '#') {
+                            let immType = arg[2];
+                            let immTypeIdx = typeIdxs[immType];
+                            if (immTypeIdx === undefined) {
+                                this.err(3);
+                            }
+                            else if (arg.length > 2) {
+                                let immContent = arg.slice(2);
+                                let immContentStr = '';
+                                if (immTypeIdx < 2) {
+                                    immContentStr = this.iToHex(immContent);
+                                }
+                                else {
+                                    immContentStr = 'flooat';
+                                }
+                                if (immContentStr === undefined) {
+                                    this.err(4);
+                                }
+                                else {
+                                    argsStr += ['41', '42', '43', '44'][immTypeIdx];
+                                    argsStr += immContentStr + '\n';
+                                }
+                            }
+                        }
+                        else {
+                            this.err(5);
+                            argTypeIdx = -1;
+                        }
+                    }
+
+                    /// Registers
+                    else {
+                        if (arg.length > 1) {
+                            let argContent = arg.slice(1);
+                            let argContentStr = this.iToHex(argContent);
+                            if (argContentStr === undefined) {
+                                this.err(6);
+                            }
+                            else {
+                                let r = parseInt(argContent);
+                                if (r > this.rMax) {
+                                    this.rMax = r;
+                                }
+                                argsStr += '20' + argContentStr + '\n';
+                            }
+                        }
                     }
                 }
-                argsHexStr += '\n';
-            }
-            switch (instrGroup) {
-
-                /// Binary operations
-                case 2:
-                    
-
             }
         }
     }
 }
-
-/// Distractors
