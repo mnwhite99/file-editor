@@ -19,8 +19,7 @@ const instrList = {
     RTR: [2, ['78', '8A', null, null], [1, 1, 0, 0]],
     MIN: [2, [null, null, '96', 'A4'], [0, 0, 1, 1]],
     MAX: [2, [null, null, '97', 'A5'], [0, 0, 1, 1]],
-    BR:  [0, ['0C', null, null, null], [1, 0, 0, 0]],
-    BC:  [1, ['0D', null, null, null], [1, 0, 0, 0]],
+    CBR: [1, ['0D', null, null, null], [1, 0, 0, 0]],
     i2I: [1, [null, 'AC', null, null], [0, 1, 0, 0]],
     i2f: [1, [null, null, 'B2', null], [0, 0, 1, 0]],
     i2F: [1, [null, null, null, 'B7'], [0, 0, 0, 1]],
@@ -32,33 +31,61 @@ const instrList = {
     f2F: [1, [null, null, null, 'BB'], [0, 0, 0, 1]],
     F2i: [1, ['AA', null, null, null], [1, 0, 0, 0]],
     F2I: [1, [null, 'B0', null, null], [0, 1, 0, 0]],
-    F2f: [1, [null, null, 'B6', null], [0, 0, 1, 0]]
-};
-const displayList = {
-    X0:  [],
-    Y0:  [],
-    X1:  [],
-    Y1:  [],
-    FIL: [],
-    BDR: [],
-    RCT: [],
-    LIN: [],
-    ARC: [],
-    SPL: [],
-    PLY: [],
-    TXT: [],
-    ML:  [],
-    MR:  [],
-    MX:  [],
-    MY:  []
+    F2f: [1, [null, null, 'B6', null], [0, 0, 1, 0]],
 }
+const IOCodes = [];
+const systemList = {
+    W:   [0, [null, null, null, null], [1, 0, 0, 0]],
+    H:   [0, [null, null, null, null], [1, 0, 0, 0]],
+    PX:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    PY:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    LIN: [0, [null, null, null, null], [0, 0, 0, 0]],
+    LW:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    FIL: [0, [null, null, null, null], [0, 0, 0, 0]],
+    SY:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    SW:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    SC:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    SA:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    SF:  [0, [null, null, null, null], [0, 0, 0, 0]],
+    MX:  [0, [null, null, null, null], [0, 0, 1, 0]],
+    MY:  [0, [null, null, null, null], [0, 0, 1, 0]],
+    ML:  [0, [null, null, null, null], [1, 0, 0, 0]],
+    MR:  [0, [null, null, null, null], [1, 0, 0, 0]],
+    SCX: [0, [null, null, null, null], [0, 0, 1, 0]],
+    SCY: [0, [null, null, null, null], [0, 0, 1, 0]],
+    ALO: [1, [null, null, null, null], [1, 0, 0, 0]],
+    CLR: [1, [null, null, null, null], [1, 0, 0, 0]],
+    SET: [1, [null, null, null, null], [0, 0, 0, 0]],
+    GET: [1, [null, null, null, null], [1, 0, 0, 0]],
+    IO:  [2,         IOCodes,          [1, 1, 1, 1]]
+};
+const sysDests = {
+    imgbuf,
+    imgw,
+    imgh,
+    iobuf,
+    iosr,
+    iolen
+};
+const sysArgs = {
+    IMGW,
+    IMGH,
+    INUM,
+    ILEN,
+    ISRT,
+    ONUM,
+    OLEN,
+    OSRT
+};
+const inputList = {};
+const outputList = {};
 const typeIdxs = { i: 0, I: 1, f: 2, F: 3 };
 
 class AsmDocument {
     constructor(str) {
         this.asmStr = '';
         this.rMax = 12;
-        this.parseLines(str);
+        this.parseDocument(str);
     }
 
     iToHex(str) {
@@ -75,18 +102,42 @@ class AsmDocument {
         stop();
     }
 
+    parseDocument(str) {
+        this.asmStr += '0061736D01000000';
+        this.asmStr += '0100'; // Type
+        this.asmStr += '0200'; // Imports
+        this.asmStr += '03200000'; // Function type
+        this.asmStr += '0400' // Tables
+        this.asmStr += '054000000000'; // Memory????
+        this.asmStr += '0600'; // Globals
+        this.asmStr += '0700'; // Exports
+        this.asmStr += '0800'; //Start
+        this.asmStr += '0900'; // Table elements
+        this.asmStr += '0A'
+        this.parseLines(str); // Code segment
+        this.asmStr += '0B00'; // Data
+
+    }
+
     parseLines(str) {
         let lines = str.split('\n');
+        let asmCode = '';
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
-            this.asmStr += this.parseLine(line);
+            asmCode += this.parseLine(line);
         }
+        let bytes = asmCode.length / 2;
+        this.asmStr += this.iToHex(bytes);
+        this.asmStr += asmCode;
+
     }
 
     parseLine(str) {
         let argsStr = '';
         let instrStr = '';
         let destStr = '';
+        let isSystem = 0;
+
         let words = str.split(' ');
         let instr = words[0];
         let instrInfo = instrList[instr];
@@ -95,31 +146,47 @@ class AsmDocument {
 
             }
             else {
-                this.err(0);
+                instrInfo = systemList[instr];
+                if (instrInfo === undefined) {
+                    this.err(0);
+                }
+                else {
+                    isSystem = 1;
+                }
             }
         }
         else {
             let args = words.slice(1);
             if (args.length > 0) {
-                let dest = args[0];
-                let destType = dest[0];
-                let destTypeIdx = typeIdxs[destType];
-                if (destTypeIdx === undefined) {
-                    this.err(1);
-                }
-                else if (dest.length > 1) {
-                    let destContent = dest.slice(1);
-                    let destContentStr = this.iToHex(destContent);
-                    if (destContentStr === undefined) {
-                        this.err(2);
+
+                /// Destination for returning instructions
+                if (isSystem === 0 || 
+                    (isSystem === 1 && (instrInfo[2][0] === 1) || instrInfo[2][2] === 1)) {
+                    let dest = args[0];
+                    let destType = dest[0];
+                    let destTypeIdx = typeIdxs[destType];
+                    if (destTypeIdx === undefined) {
+                        this.err(1);
                     }
-                    else {
-                        destStr = '21' + destContentStr + '\n';
+                    else if (dest.length > 1) {
+                        let destContent = dest.slice(1);
+                        let destContentStr = this.iToHex(destContent);
+                        if (destContentStr === undefined) {
+                            this.err(2);
+                        }
+                        else {
+                            destStr = '21' + destContentStr + '\n';
+                        }
                     }
                 }
 
                 /// Instruction
-                instrStr = instrInfo[1][destTypeIdx];
+                if (instrInfo[2][destTypeIdx] === 0) {
+                    this.err(3);
+                }
+                else {
+                    instrStr = instrInfo[1][destTypeIdx];
+                }
 
                 /// Arguments
                 for (let i = 1; i < args.length; i++) {
@@ -133,7 +200,7 @@ class AsmDocument {
                             let immType = arg[2];
                             let immTypeIdx = typeIdxs[immType];
                             if (immTypeIdx === undefined) {
-                                this.err(3);
+                                this.err(4);
                             }
                             else if (arg.length > 2) {
                                 let immContent = arg.slice(2);
@@ -145,7 +212,7 @@ class AsmDocument {
                                     immContentStr = 'flooat';
                                 }
                                 if (immContentStr === undefined) {
-                                    this.err(4);
+                                    this.err(5);
                                 }
                                 else {
                                     argsStr += ['41', '42', '43', '44'][immTypeIdx];
@@ -154,7 +221,7 @@ class AsmDocument {
                             }
                         }
                         else {
-                            this.err(5);
+                            this.err(6);
                             argTypeIdx = -1;
                         }
                     }
@@ -165,7 +232,7 @@ class AsmDocument {
                             let argContent = arg.slice(1);
                             let argContentStr = this.iToHex(argContent);
                             if (argContentStr === undefined) {
-                                this.err(6);
+                                this.err(7);
                             }
                             else {
                                 let r = parseInt(argContent);
@@ -181,3 +248,9 @@ class AsmDocument {
         }
     }
 }
+
+let textEntry = document.getElementById('textEntry');
+textEntry.addEventListener('input', function() {
+    let doc = new AsmDocument(textEntry.innerHTML);
+    console.log(doc.asmStr);
+})

@@ -19,6 +19,7 @@ body {
     color: var(--fg);
     background-color: var(--bg);
     caret-color: var(--fg);
+    line-height: 20px;
 }
 
 ::selection {
@@ -48,50 +49,48 @@ body {
     background-color: var(--fg);
 }
 
-#options {
-    left: 20px;
-    top: 20px;
-}
-
-#optionsMenu {
-    visibility: hidden;
-    position: absolute;
-    left: 20px;
-    top: 20px;
-    width: calc(240px - 2px);
-    height: calc(500px - 2px);
-    background-color: var(--bg);
-    border: 1px solid var(--fg);
-    padding: 10px;
-    padding-top: 100px;
-}
-
-#name {
+#settings {
     position: absolute;
     left: 20px;
     top: 20px;
     width: 120px;
-    overflow-wrap: anywhere;
+    height: fit-content;
+    overflow: visible;
     user-select: none;
+}
+
+.clickText {
+    line-height: 40px;
+    text-decoration: none;
+}
+
+.clickText:hover {
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 #textEntry {
     position: absolute;
-    left: 400px;
+    left: 0px;
     top: 0px;
     font-size: 16px;
     border-style: hidden;
     resize: none;
-    width: 360px;
+    width: 860px;
     height: 100%;
     padding: 0px;
     padding-top: 20px;
+    padding-left: 400px;
     padding-bottom: 20px;
-    padding-right: 20px;
+    padding-right: 120px;
     overflow-y: scroll;
     overflow-x: visible;
     overflow-wrap: normal;
     scrollbar-width: none;
+    color: var(--fg);
+    background-color: transparent;
+    caret-color: var(--fg);
+    line-height: 20px;
 }:focus {
     outline: none;
 }

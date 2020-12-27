@@ -1,0 +1,24 @@
+I/O
+
+in[]
+out[]
+img[]
+mse[]
+
+
+memlocs
+~in
+~out
+~img
+~mse
+~kbd
+~midi
+
+
+LNX line x
+LNY line y
+LNW line width
+LNC line color
+LNA line alpha
+LNF line fill
+
