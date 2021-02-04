@@ -1,256 +1,273 @@
-const instrList = {
-    ///  Group        Opcodes           DestTypes
-    ADD: [2, ['6A', '7C', '92', 'A0'], [1, 1, 1, 1]],
-    SUB: [2, ['6B', '7D', '93', 'A1'], [1, 1, 1, 1]],
-    MUL: [2, ['6C', '7E', '94', 'A2'], [1, 1, 1, 1]],
-    DIV: [2, ['6D', '7F', '95', 'A3'], [1, 1, 1, 1]],
-    EQ:  [2, ['46', '51', '5B', '61'], [1, 1, 0, 0]],
-    NE:  [2, ['47', '52', '5C', '62'], [1, 1, 0, 0]],
-    LT:  [2, ['48', '53', '5D', '63'], [1, 1, 0, 0]],
-    GT:  [2, ['4A', '55', '5E', '64'], [1, 1, 0, 0]],
-    LE:  [2, ['5C', '57', '5F', '65'], [1, 1, 0, 0]],
-    GE:  [2, ['5E', '59', '60', '66'], [1, 1, 0, 0]],
-    AND: [2, ['71', '83', null, null], [1, 1, 0, 0]],
-    ORR: [2, ['72', '84', null, null], [1, 1, 0, 0]],
-    XOR: [2, ['73', '85', null, null], [1, 1, 0, 0]],
-    SHL: [2, ['74', '86', null, null], [1, 1, 0, 0]],
-    SHR: [2, ['75', '87', null, null], [1, 1, 0, 0]],
-    RTL: [2, ['77', '89', null, null], [1, 1, 0, 0]],
-    RTR: [2, ['78', '8A', null, null], [1, 1, 0, 0]],
-    MIN: [2, [null, null, '96', 'A4'], [0, 0, 1, 1]],
-    MAX: [2, [null, null, '97', 'A5'], [0, 0, 1, 1]],
-    CBR: [1, ['0D', null, null, null], [1, 0, 0, 0]],
-    i2I: [1, [null, 'AC', null, null], [0, 1, 0, 0]],
-    i2f: [1, [null, null, 'B2', null], [0, 0, 1, 0]],
-    i2F: [1, [null, null, null, 'B7'], [0, 0, 0, 1]],
-    I2i: [1, ['A7', null, null, null], [1, 0, 0, 0]],
-    I2f: [1, [null, null, 'B4', null], [0, 0, 1, 0]],
-    I2F: [1, [null, null, null, 'B9'], [0, 0, 0, 1]],
-    f2i: [1, ['B6', null, null, null], [1, 0, 0, 0]],
-    f2I: [1, [null, 'AE', null, null], [0, 1, 0, 0]],
-    f2F: [1, [null, null, null, 'BB'], [0, 0, 0, 1]],
-    F2i: [1, ['AA', null, null, null], [1, 0, 0, 0]],
-    F2I: [1, [null, 'B0', null, null], [0, 1, 0, 0]],
-    F2f: [1, [null, null, 'B6', null], [0, 0, 1, 0]],
-}
-const IOCodes = [];
-const systemList = {
-    W:   [0, [null, null, null, null], [1, 0, 0, 0]],
-    H:   [0, [null, null, null, null], [1, 0, 0, 0]],
-    PX:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    PY:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    LIN: [0, [null, null, null, null], [0, 0, 0, 0]],
-    LW:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    FIL: [0, [null, null, null, null], [0, 0, 0, 0]],
-    SY:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    SW:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    SC:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    SA:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    SF:  [0, [null, null, null, null], [0, 0, 0, 0]],
-    MX:  [0, [null, null, null, null], [0, 0, 1, 0]],
-    MY:  [0, [null, null, null, null], [0, 0, 1, 0]],
-    ML:  [0, [null, null, null, null], [1, 0, 0, 0]],
-    MR:  [0, [null, null, null, null], [1, 0, 0, 0]],
-    SCX: [0, [null, null, null, null], [0, 0, 1, 0]],
-    SCY: [0, [null, null, null, null], [0, 0, 1, 0]],
-    ALO: [1, [null, null, null, null], [1, 0, 0, 0]],
-    CLR: [1, [null, null, null, null], [1, 0, 0, 0]],
-    SET: [1, [null, null, null, null], [0, 0, 0, 0]],
-    GET: [1, [null, null, null, null], [1, 0, 0, 0]],
-    IO:  [2,         IOCodes,          [1, 1, 1, 1]]
-};
-const sysDests = {
-    imgbuf,
-    imgw,
-    imgh,
-    iobuf,
-    iosr,
-    iolen
-};
-const sysArgs = {
-    IMGW,
-    IMGH,
-    INUM,
-    ILEN,
-    ISRT,
-    ONUM,
-    OLEN,
-    OSRT
-};
-const inputList = {};
-const outputList = {};
-const typeIdxs = { i: 0, I: 1, f: 2, F: 3 };
-
-class AsmDocument {
-    constructor(str) {
-        this.asmStr = '';
-        this.rMax = 12;
-        this.parseDocument(str);
+class Parser {
+    constructor(string) {
+        this.wasm = [];
+        this.codeWasm = [];
+        this.currentexpression = 0;
+        this.expressionWasm = [];
+        this.usedExpressions = [];
+        this.expressionTable = [];
+        this.errors = [];
+        this.lineCount = 0;
+        this.integerCount = 0;
+        this.floatCount = 0;
+        let lines = string.split('\n');
+        this.parseLines(lines);
     }
 
-    iToHex(str) {
-        let int = parseInt(str);
-        if (isNaN(int)) {
-            return undefined;
-        }
-        else {
-            return int.toString(16);
-        }
-    }
-
-    err(num) {
-        stop();
-    }
-
-    parseDocument(str) {
-        this.asmStr += '0061736D01000000';
-        this.asmStr += '0100'; // Type
-        this.asmStr += '0200'; // Imports
-        this.asmStr += '03200000'; // Function type
-        this.asmStr += '0400' // Tables
-        this.asmStr += '054000000000'; // Memory????
-        this.asmStr += '0600'; // Globals
-        this.asmStr += '0700'; // Exports
-        this.asmStr += '0800'; //Start
-        this.asmStr += '0900'; // Table elements
-        this.asmStr += '0A'
-        this.parseLines(str); // Code segment
-        this.asmStr += '0B00'; // Data
-
-    }
-
-    parseLines(str) {
-        let lines = str.split('\n');
-        let asmCode = '';
+    parseLines(lines) {
+        let instructionSet = {
+            add: [4, [0x7c, 0xa0], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
+            sub: [4, [0x7d, 0xa1], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
+            mul: [4, [0x7e, 0xa2], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
+            div: [4, [0x7f, 0xa3], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
+            lt:  [4, [0x53, 0x63], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            gt:  [4, [0x55, 0x64], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            eq:  [4, [0x51, 0x61], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            leq: [4, [0x57, 0x65], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            geq: [4, [0x59, 0x66], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            neq: [4, [0x52, 0x62], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
+            and: [4, [0x83, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
+            orr: [4, [0x84, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
+            xor: [4, [0x85, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
+            sl:  [4, [0x86, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
+            sr:  [4, [0x87, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
+            cbr: [3, [0x04, null], [1, 0, 1, 0], [[1, 0, 1, 0], [0, 0, 0, 0]], 0],
+            set: [3, [0x01, 0x01], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
+            rxy: [3, [0x29, 0x2b], [1, 1, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
+            wxy: [3, [0x37, 0x39], [1, 1, 1, 1], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
+            mx:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
+            my:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
+            mw:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
+            mh:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
+            msz: [2, [0x3f, null], [1, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 1],
+            mxt: [2, [0x40, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0]
+        };
+        this.lineCount = lines.length;
+        this.wasm.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
         for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            asmCode += this.parseLine(line);
+            this.parseLine(line, i, instructionSet);
         }
-        let bytes = asmCode.length / 2;
-        this.asmStr += this.iToHex(bytes);
-        this.asmStr += asmCode;
-
+        this.appendSection(this.codeWasm, 10);
+        let functionTypes = this.readBytes(this.usedExpressions.length, 32);
+        for (let i = 0; i < this.usedExpressions.length; i++) {
+            functionTypes.concat([0x60, 0x00]);
+        }
+        this.appendSection(functionTypes, 3);
+        let byteArray = new Uint8Array(this.wasm.length);
+        for (let i = 0; i < this.wasm.length; i++) {
+            byteArray[i] = this.wasm[i];
+        }
+        this.wasm = byteArray;
     }
 
-    parseLine(str) {
-        let argsStr = '';
-        let instrStr = '';
-        let destStr = '';
-        let isSystem = 0;
+    parseLine(line, lineNumber, instructionSet) {
+        let operands = line.trim().split(' ').map(operand => operand.trim());
+        if (operands.length === 0) {
+            return;
+        }
 
-        let words = str.split(' ');
-        let instr = words[0];
-        let instrInfo = instrList[instr];
-        if (instrInfo === undefined) {
-            if (instr[0] === '.') {
+        let operandsWasm = [];
+        let instructionWasm = [];
+        let destinationWasm = [];
 
+        let instruction = operands[0];    
+        let instructionInfo = instructionSet[instruction];
+        if (instructionInfo === undefined) {
+            if (operands.length === 1) {
+                let expressionOperand = this.readOperand(operands[0]);
+                let expressionType = expressionOperand[0];
+                let expressionIndex = expressionOperand[1];
+                if (expressionType === undefined) {
+                    this.reportError('expression type not recognized', lineNumber);
+                    return;
+                }
+                if (expressionType !== 0 && expressionType !== 2) {
+                    this.reportError('expression type not supported', lineNumber);
+                    return;
+                }
+                if (expressionIndex === undefined) {
+                    this.reportError('expression index not recognized', lineNumber);
+                    return;
+                }
+                if (expressionIndex < 0 || expressionIndex >= 2 ^ 32) {
+                    this.reportError('expression index not supported', lineNumber);
+                    return;
+                }
+                if (this.usedExpressions.contains(expressionIndex)) {
+                    this.reportError('expression index already in use', lineNumber);
+                    return;
+                }
+                if (expressionIndex === 0x40) {
+                    expressionIndex = 0xff;
+                }
+                this.expressionWasm[0] = expressionWasm.length - 1;
+                this.codeWasm.concat(this.expressionWasm);
+                this.usedExpressions.push(expressionIndex);
+                this.currentExpression = expressionIndex;
+                this.expressionWasm = [0x00];
+                return;
             }
             else {
-                instrInfo = systemList[instr];
-                if (instrInfo === undefined) {
-                    this.err(0);
-                }
-                else {
-                    isSystem = 1;
-                }
+                this.reportError('instruction not supported', lineNumber);
+                return;
             }
+        }
+        if (operands.length === 1) {
+            this.reportError('destination not specified', lineNumber);
+            return;
+        }
+
+        let destinationOperand = this.readOperand(operands[1]);
+        let destinationWasm = [];
+        let destinationType = destinationOperand[0];
+        let destinationIndex = destinationOperand[1];
+        if (destinationType === undefined) {
+            this.reportError('destination type not recognized', lineNumber);
+            return;
+        }
+        if (instructionInfo[2][destinationType] === 0) {
+            this.reportError('destination type not supported', lineNumber);
+            return;
+        }
+        if (destinationIndex === undefined) {
+            this.reportError('destination index not recognized', lineNumber);
+            return;
+        }
+        if (this.validateOperand(destinationOperand) === 0) {
+            this.reportError('destination index not supported', lineNumber);
+            return;
+        }
+
+        if (instruction === 'wxy') {
+            if (destinationType < 2) {
+                operandsWasm
+            }
+            else {
+
+            }
+            operandsWasm.concat([0x00, 0x06]);
+        }
+        else if (instruction === 'cbr') {
+
         }
         else {
-            let args = words.slice(1);
-            if (args.length > 0) {
+            instructionWasm.push(instructionInfo[1][destinationType % 2]);
+            destinationWasm.push(0x24);
+            destinationWasm.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
+        }
 
-                /// Destination for returning instructions
-                if (isSystem === 0 || 
-                    (isSystem === 1 && (instrInfo[2][0] === 1) || instrInfo[2][2] === 1)) {
-                    let dest = args[0];
-                    let destType = dest[0];
-                    let destTypeIdx = typeIdxs[destType];
-                    if (destTypeIdx === undefined) {
-                        this.err(1);
-                    }
-                    else if (dest.length > 1) {
-                        let destContent = dest.slice(1);
-                        let destContentStr = this.iToHex(destContent);
-                        if (destContentStr === undefined) {
-                            this.err(2);
-                        }
-                        else {
-                            destStr = '21' + destContentStr + '\n';
-                        }
-                    }
+        this.expressionWasm.concat(operandsWasm.concat(instructionWasm.concat(destinationWasm)));     
+    }
+
+    readOperand(operand) {
+        let type = undefined;
+        let value = undefined;
+        if (operand.length > 0) {
+            type = 2;
+            if (operand[0] === 'i') {
+                type = 0;
+            }
+            else if (operand[0] === 'f') {
+                type = 1
+            }
+            else if (operand.contains('.')) {
+                type = 3;
+            }
+            
+            let valueString = undefined;
+            if (type < 2) {
+                valueString = operand.substring(1);
+            }
+            else {
+                valueString = operand;
+            }
+
+            let radix = 10;
+            if (type !== 3) {
+                let prefix = operand.substring(0, 2)
+                if (prefix === '0x') {
+                    radix = 16;
+                    valueString = valueString.substring(2);
                 }
-
-                /// Instruction
-                if (instrInfo[2][destTypeIdx] === 0) {
-                    this.err(3);
-                }
-                else {
-                    instrStr = instrInfo[1][destTypeIdx];
-                }
-
-                /// Arguments
-                for (let i = 1; i < args.length; i++) {
-                    let arg = args[i];
-                    let argType = arg[0];
-                    let argTypeIdx = typeIdxs[argType];
-
-                    /// Immediates
-                    if (argTypeIdx === undefined) {
-                        if (argType === '#') {
-                            let immType = arg[2];
-                            let immTypeIdx = typeIdxs[immType];
-                            if (immTypeIdx === undefined) {
-                                this.err(4);
-                            }
-                            else if (arg.length > 2) {
-                                let immContent = arg.slice(2);
-                                let immContentStr = '';
-                                if (immTypeIdx < 2) {
-                                    immContentStr = this.iToHex(immContent);
-                                }
-                                else {
-                                    immContentStr = 'flooat';
-                                }
-                                if (immContentStr === undefined) {
-                                    this.err(5);
-                                }
-                                else {
-                                    argsStr += ['41', '42', '43', '44'][immTypeIdx];
-                                    argsStr += immContentStr + '\n';
-                                }
-                            }
-                        }
-                        else {
-                            this.err(6);
-                            argTypeIdx = -1;
-                        }
-                    }
-
-                    /// Registers
-                    else {
-                        if (arg.length > 1) {
-                            let argContent = arg.slice(1);
-                            let argContentStr = this.iToHex(argContent);
-                            if (argContentStr === undefined) {
-                                this.err(7);
-                            }
-                            else {
-                                let r = parseInt(argContent);
-                                if (r > this.rMax) {
-                                    this.rMax = r;
-                                }
-                                argsStr += '20' + argContentStr + '\n';
-                            }
-                        }
-                    }
+                else if (prefix === '0b') {
+                    radix = 2;
+                    valueString = valueString.substring(2);
                 }
             }
+
+            let verifier = '0123456789';
+            if (type === 3) {
+                verifier += '.-';
+                let decimalCount = 0;
+                let negativeCount = 0;
+                for (let i = 0; i < valueString.length; i++) {
+                    if (!verifier.includes(valueString[i])) {
+                        return [type, undefined];
+                    }
+                    if (valueString[i] === '.') {
+                        decimalCount++;
+                    }
+                    if (valueString[i] === '-') {
+                        negativeCount++;
+                    }
+                }
+                if (decimalCount !== 1 || negativeCount > 1) {
+                    return [type, undefined];
+                }
+                value = parseFloat(valueString);
+            }
+            else {
+                if (radix === 16) {
+                    verifier += 'abcdef';
+                }
+                else if (radix === 2) {
+                    verifier = '01';
+                }
+                else {
+                    verifier += '-';
+                }
+                for (let i = 0; i < valueString.length; i++) {
+                    if (!verifier.includes(valueString[i])) {
+                        return [type, undefined];
+                    }
+                }
+                value = parseInt(valueString, radix);
+            }
+        }
+        return [type, value];
+    }
+
+    validateOperand(type, value) {
+        if (type < 2 && (value < 0 || 2 * value + type - 2 >= 2 ^ 32)) {
+            return 0;
+        }
+        else {
+            return 1;
         }
     }
-}
 
-let textEntry = document.getElementById('textEntry');
-textEntry.addEventListener('input', function() {
-    let doc = new AsmDocument(textEntry.innerHTML);
-    console.log(doc.asmStr);
-})
+    readBytes(value, bits, float = 0) {
+
+    }
+
+    composeByteArray(binaryString) {
+        let byteArray = new Uint8Array(Math.ceil(binaryString.length / 8));
+        for (let i = 0; i < binaryString.length; i += 8) {
+            let byteValue = parseInt(binaryString.substring(i, i + 8), 2);
+            byteArray.push(byteValue);
+        }
+        return byteArray;
+    }
+
+    reportError(message, lineNumber) {
+        this.errors.push({
+            message: message, lineNumber, lineNumber
+        });
+    }
+
+    appendSection(bytes, index) {
+        this.wasm.push(index);
+        this.wasm.concat(this.readBytes(bytes.length, 32));
+        this.wasm.concat(bytes);
+    }
+}
