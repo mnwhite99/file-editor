@@ -16,31 +16,35 @@ class Parser {
 
     parseLines(lines) {
         let instructionSet = {
-            add: [4, [0x7c, 0xa0], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
-            sub: [4, [0x7d, 0xa1], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
-            mul: [4, [0x7e, 0xa2], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
-            div: [4, [0x7f, 0xa3], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
-            lt:  [4, [0x53, 0x63], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            gt:  [4, [0x55, 0x64], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            eq:  [4, [0x51, 0x61], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            leq: [4, [0x57, 0x65], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            geq: [4, [0x59, 0x66], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            neq: [4, [0x52, 0x62], [1, 0, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 1],
-            and: [4, [0x83, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
-            orr: [4, [0x84, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
-            xor: [4, [0x85, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 1],
-            sl:  [4, [0x86, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
-            sr:  [4, [0x87, null], [1, 0, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
-            cbr: [3, [0x04, null], [1, 0, 1, 0], [[1, 0, 1, 0], [0, 0, 0, 0]], 0],
-            set: [3, [0x01, 0x01], [1, 1, 0, 0], [[1, 1, 1, 1], [1, 1, 1, 1]], 0],
-            rxy: [3, [0x29, 0x2b], [1, 1, 0, 0], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
-            wxy: [3, [0x37, 0x39], [1, 1, 1, 1], [[1, 0, 1, 0], [1, 0, 1, 0]], 0],
-            mx:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
-            my:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
-            mw:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
-            mh:  [1, [0x10, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0],
-            msz: [2, [0x3f, null], [1, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 1],
-            mxt: [2, [0x40, null], [1, 0, 1, 0], [[0, 0, 0, 0], [0, 0, 0, 0]], 0]
+            add: [4, [0x7c, 0xa0], [1, 1, 0, 0], 0, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            sub: [4, [0x7d, 0xa1], [1, 1, 0, 0], 0, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            mul: [4, [0x7e, 0xa2], [1, 1, 0, 0], 0, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            div: [4, [0x7f, 0xa3], [1, 1, 0, 0], 0, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            lt:  [4, [0x53, 0x63], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            gt:  [4, [0x55, 0x64], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            eq:  [4, [0x51, 0x61], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            leq: [4, [0x57, 0x65], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            geq: [4, [0x59, 0x66], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            neq: [4, [0x52, 0x62], [1, 0, 0, 0], 1, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            and: [4, [0x83, null], [1, 0, 0, 0], 1, [[1, 0, 1, 0], [1, 0, 1, 0]]],
+            ior: [4, [0x84, null], [1, 0, 0, 0], 1, [[1, 0, 1, 0], [1, 0, 1, 0]]],
+            xor: [4, [0x85, null], [1, 0, 0, 0], 1, [[1, 0, 1, 0], [1, 0, 1, 0]]],
+            sl:  [4, [0x86, null], [1, 0, 0, 0], 0, [[1, 0, 1, 0], [1, 0, 1, 0]]],
+            sr:  [4, [0x87, null], [1, 0, 0, 0], 0, [[1, 0, 1, 0], [1, 0, 1, 0]]],
+            set: [3, [0x01, 0x01], [1, 1, 0, 0], 2, [[1, 1, 1, 1], [1, 1, 1, 1]]],
+            cbr: [3, [0x04, null], [1, 0, 1, 0], 0, [[1, 0, 1, 0], [0, 0, 0, 0]]],
+            rd:  [2, [0x29, 0x2b], [1, 1, 0, 0], 2, [[1, 0, 1, 0], [0, 0, 0, 0]]],
+            wr:  [2, [0x37, 0x39], [1, 1, 1, 1], 2, [[1, 0, 1, 0], [0, 0, 0, 0]]],
+            msz: [2, [0x3f, null], [1, 0, 0, 0], 1, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            mxt: [2, [0x40, null], [1, 0, 1, 0], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lns: [1, [0x10, null], [1, 0, 1, 0], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lnc: [1, [0x10, null], [1, 0, 1, 0], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lnf: [1, [0x10, null], [1, 0, 1, 0], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lnw: [1, [null, 0x10], [0, 1, 0, 1], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lnx: [1, [null, 0x10], [0, 1, 0, 1], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lny: [1, [null, 0x10], [0, 1, 0, 1], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            lna: [1, [null, 0x10], [0, 1, 0, 1], 0, [[0, 0, 0, 0], [0, 0, 0, 0]]],
+            ctl: [2, [null, 0x10], [0, 1, 0, 1], 0, [[1, 0, 1, 0], [1, 0, 1, 0]]]
         };
         this.lineCount = lines.length;
         this.wasm.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
@@ -81,7 +85,7 @@ class Parser {
                     this.reportError('expression type not recognized', lineNumber);
                     return;
                 }
-                if (expressionType !== 0 && expressionType !== 2) {
+                if (expressionType !== 2) {
                     this.reportError('expression type not supported', lineNumber);
                     return;
                 }
@@ -138,22 +142,65 @@ class Parser {
             return;
         }
 
-        if (instruction === 'wxy') {
+        instructionWasm.push(instructionInfo[1][destinationType % 2]);
+
+        if (instruction === 'wr') {
+            destinationWasm.push(0x00);
             if (destinationType < 2) {
-                operandsWasm
+                destinationWasm.push(0x23);
             }
-            else {
-
-            }
-            operandsWasm.concat([0x00, 0x06]);
+            destinationWasm.concat(this.readBytes(destinationIndex, 32));
         }
-        else if (instruction === 'cbr') {
+        if (instruction === 'cbr') {
 
         }
-        else {
-            instructionWasm.push(instructionInfo[1][destinationType % 2]);
+        if (instruction === 'msz') {
+            instructionWasm.push(0x00);
+        }
+        if (instruction === 'mxt') {
+            instructionWasm.push(0x00);
+        }
+        if (instruction !== 'mxt' && instruction.substring(0, 2) !== 'ln') {
             destinationWasm.push(0x24);
             destinationWasm.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
+        }
+
+        for (let i = 2; i < operands.length; i++) {
+            let operand = this.readOperand(operands[i]);
+            let operandType = operand[0];
+            let operandValue = operand[1];
+            if (operandType === undefined) {
+                this.reportError('operand type not recognized', lineNumber);
+                return;
+            }
+            if (operandType % 2 !== destinationType && instructionInfo[3] !== 2) {
+                this.reportError('operand type not supported', lineNumber);
+                return;
+            }
+            if (operandValue === undefined) {
+                this.reportError('operand value not recognized', lineNumber);
+                return;
+            }
+            if (this.validateOperand(operand) === 0) {
+                this.reportError('operand value not supported', lineNumber);
+                return;
+            }
+            if (operandType < 2) {
+                operandsWasm.push(0x24);
+                operandsWasm.push(this.readBytes(2 * operandValue + operandType, 32));
+            }
+            if (operandType >= 2) {
+                operandsWasm.push([0x42, 0x44][operandType - 2]);
+                operandsWasm.push(this.readBytes(operandValue, 64, operandType - 2));
+            }
+            if (instruction === 'set' && operandType % 2 !== destinationType) {
+                if (destinationType === 0) {
+                    operandsWasm.push(0xb0);
+                }
+                else {
+                    operandsWasm.push(0xb9);
+                }
+            }
         }
 
         this.expressionWasm.concat(operandsWasm.concat(instructionWasm.concat(destinationWasm)));     
@@ -238,7 +285,7 @@ class Parser {
     }
 
     validateOperand(type, value) {
-        if (type < 2 && (value < 0 || 2 * value + type - 2 >= 2 ^ 32)) {
+        if (type < 2 && (value < 0 || 2 * value + type >= 2 ^ 32)) {
             return 0;
         }
         else {
@@ -248,15 +295,6 @@ class Parser {
 
     readBytes(value, bits, float = 0) {
 
-    }
-
-    composeByteArray(binaryString) {
-        let byteArray = new Uint8Array(Math.ceil(binaryString.length / 8));
-        for (let i = 0; i < binaryString.length; i += 8) {
-            let byteValue = parseInt(binaryString.substring(i, i + 8), 2);
-            byteArray.push(byteValue);
-        }
-        return byteArray;
     }
 
     reportError(message, lineNumber) {
