@@ -32,11 +32,10 @@ class Parser {
             sl:  [4, [0x86, null], [1, 0, 0, 0], 0],
             sr:  [4, [0x87, null], [1, 0, 0, 0], 0],
             set: [3, [0x01, 0x01], [1, 1, 0, 0], 2],
-            cbr: [3, [0x11, null], [1, 0, 1, 0], 0],
+            cbr: [3, [0x04, null], [1, 0, 1, 0], 0],
+            msz: [3, [0x40, null], [1, 0, 0, 0], 1],
             rd:  [2, [0x29, 0x2b], [1, 1, 0, 0], 2],
-            wr:  [2, [0x37, 0x39], [1, 1, 1, 1], 2],
-            msz: [2, [0x3f, null], [1, 0, 0, 0], 1],
-            mxt: [2, [0x40, null], [1, 0, 1, 0], 0],
+            wr:  [2, [0x37, 0x39], [1, 0, 1, 0], 2],
             lns: [1, [0x10, null], [1, 0, 1, 0], 0],
             lnc: [1, [0x10, null], [1, 0, 1, 0], 0],
             lnf: [1, [0x10, null], [1, 0, 1, 0], 0],
@@ -143,6 +142,12 @@ class Parser {
         }
 
         instructionWasm.push(instructionInfo[1][destinationType % 2]);
+        if (instruction === 'cbr') {
+            instructionWasm.concat([0x00, 0x11, 0x06]);
+        }
+        if (instruction === 'msz') {
+            instructionWasm.push(0x00);
+        }
 
         if (instruction === 'wr') {
             destinationWasm.push(0x00);
@@ -151,16 +156,17 @@ class Parser {
             }
             destinationWasm.concat(this.readBytes(destinationIndex, 32));
         }
-        if (instruction === 'cbr') {
-
+        else if (instruction === 'cbr') {
+            if (destinationType === 0) {
+                destinationWasm.push(0x23);
+                destinationWasm.concat(this.readBytes(2 * destinationIndex, 32));
+            }
+            if (destinationType === 2) {
+                destinationWasm.concat(this.readBytes(destinationIndex, 32));
+            }
+            destinationWasm.concat([0x00, 0x0b]);
         }
-        if (instruction === 'msz') {
-            instructionWasm.push(0x00);
-        }
-        if (instruction === 'mxt') {
-            instructionWasm.push(0x00);
-        }
-        if (instruction !== 'mxt' && instruction.substring(0, 2) !== 'ln') {
+        else if (instruction.substring(0, 2) !== 'ln') {
             destinationWasm.push(0x24);
             destinationWasm.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
         }
