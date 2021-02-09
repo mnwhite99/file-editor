@@ -91,6 +91,7 @@ body {
     background-color: transparent;
     caret-color: var(--fg);
     line-height: 20px;
+    
 }:focus {
     outline: none;
 }
