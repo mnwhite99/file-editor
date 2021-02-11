@@ -1,4 +1,4 @@
-Created by Max White at the University of Chicago
+Created by Max White for the University of Chicago
 
 References:
 https://developer.mozilla.org/
