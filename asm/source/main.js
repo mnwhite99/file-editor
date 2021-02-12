@@ -1,9 +1,9 @@
 class Parser {
     constructor(string) {
-        this.wasm = [];
-        this.codeWasm = [];
-        this.currentexpression = 0;
-        this.expressionWasm = [];
+        this.assembly = [];
+        this.codeAssembly = [];
+        this.currentExpression = 0;
+        this.expressionAssembly = [];
         this.usedExpressions = [];
         this.expressionTable = [];
         this.errors = [];
@@ -46,21 +46,21 @@ class Parser {
             ctl: [2, [null, 0x10], [0, 1, 0, 1], 0]
         };
         this.lineCount = lines.length;
-        this.wasm.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+        this.assembly.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
         for (let i = 0; i < lines.length; i++) {
             this.parseLine(line, i, instructionSet);
         }
-        this.appendSection(this.codeWasm, 10);
+        this.appendSection(this.codeAssembly, 10);
         let functionTypes = this.readBytes(this.usedExpressions.length, 32);
         for (let i = 0; i < this.usedExpressions.length; i++) {
             functionTypes.concat([0x60, 0x00]);
         }
         this.appendSection(functionTypes, 3);
-        let byteArray = new Uint8Array(this.wasm.length);
-        for (let i = 0; i < this.wasm.length; i++) {
-            byteArray[i] = this.wasm[i];
+        let byteArray = new Uint8Array(this.assembly.length);
+        for (let i = 0; i < this.assembly.length; i++) {
+            byteArray[i] = this.assembly[i];
         }
-        this.wasm = byteArray;
+        this.assembly = byteArray;
     }
 
     parseLine(line, lineNumber, instructionSet) {
@@ -69,9 +69,9 @@ class Parser {
             return;
         }
 
-        let operandsWasm = [];
-        let instructionWasm = [];
-        let destinationWasm = [];
+        let operandsAssembly = [];
+        let instructionAssembly = [];
+        let destinationAssembly = [];
 
         let instruction = operands[0];    
         let instructionInfo = instructionSet[instruction];
@@ -103,11 +103,11 @@ class Parser {
                 if (expressionIndex === 0x40) {
                     expressionIndex = 0xff;
                 }
-                this.expressionWasm[0] = expressionWasm.length - 1;
-                this.codeWasm.concat(this.expressionWasm);
+                this.expressionAssembly[0] = expressionAssembly.length - 1;
+                this.codeAssembly.concat(this.expressionAssembly);
                 this.usedExpressions.push(expressionIndex);
                 this.currentExpression = expressionIndex;
-                this.expressionWasm = [0x00];
+                this.expressionAssembly = [0x00];
                 return;
             }
             else {
@@ -120,7 +120,7 @@ class Parser {
             return;
         }
 
-        destinationWasm = [];
+        destinationAssembly = [];
         let destinationOperand = this.readOperand(operands[1]);
         let destinationType = destinationOperand[0];
         let destinationIndex = destinationOperand[1];
@@ -141,34 +141,34 @@ class Parser {
             return;
         }
 
-        instructionWasm.push(instructionInfo[1][destinationType % 2]);
+        instructionAssembly.push(instructionInfo[1][destinationType % 2]);
         if (instruction === 'cbr') {
-            instructionWasm.concat([0x00, 0x11, 0x06]);
+            instructionAssembly.concat([0x00, 0x11, 0x06]);
         }
         if (instruction === 'msz') {
-            instructionWasm.push(0x00);
+            instructionAssembly.push(0x00);
         }
 
         if (instruction === 'wr') {
-            destinationWasm.push(0x00);
+            destinationAssembly.push(0x00);
             if (destinationType < 2) {
-                destinationWasm.push(0x23);
+                destinationAssembly.push(0x23);
             }
-            destinationWasm.concat(this.readBytes(destinationIndex, 32));
+            destinationAssembly.concat(this.readBytes(destinationIndex, 32));
         }
         else if (instruction === 'cbr') {
             if (destinationType === 0) {
-                destinationWasm.push(0x23);
-                destinationWasm.concat(this.readBytes(2 * destinationIndex, 32));
+                destinationAssembly.push(0x23);
+                destinationAssembly.concat(this.readBytes(2 * destinationIndex, 32));
             }
             if (destinationType === 2) {
-                destinationWasm.concat(this.readBytes(destinationIndex, 32));
+                destinationAssembly.concat(this.readBytes(destinationIndex, 32));
             }
-            destinationWasm.concat([0x00, 0x0b]);
+            destinationAssembly.concat([0x00, 0x0b]);
         }
         else if (instruction.substring(0, 2) !== 'ln') {
-            destinationWasm.push(0x24);
-            destinationWasm.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
+            destinationAssembly.push(0x24);
+            destinationAssembly.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
         }
 
         for (let i = 2; i < operands.length; i++) {
@@ -192,24 +192,26 @@ class Parser {
                 return;
             }
             if (operandType < 2) {
-                operandsWasm.push(0x24);
-                operandsWasm.push(this.readBytes(2 * operandValue + operandType, 32));
+                operandsAssembly.push(0x24);
+                operandsAssembly.push(this.readBytes(2 * operandValue + operandType, 32));
             }
             if (operandType >= 2) {
-                operandsWasm.push([0x42, 0x44][operandType - 2]);
-                operandsWasm.push(this.readBytes(operandValue, 64, operandType - 2));
+                operandsAssembly.push([0x42, 0x44][operandType - 2]);
+                operandsAssembly.push(this.readBytes(operandValue, 64, operandType));
             }
             if (instruction === 'set' && operandType % 2 !== destinationType) {
                 if (destinationType === 0) {
-                    operandsWasm.push(0xb0);
+                    operandsAssembly.push(0xb0);
                 }
                 else {
-                    operandsWasm.push(0xb9);
+                    operandsAssembly.push(0xb9);
                 }
             }
         }
 
-        this.expressionWasm.concat(operandsWasm.concat(instructionWasm.concat(destinationWasm)));     
+        this.expressionAssembly.concat(operandsAssembly);
+        this.expressionAssembly.concat(instructionAssembly);
+        this.expressionAssembly.concat(destinationAssembly);     
     }
 
     readOperand(operand) {
@@ -295,12 +297,30 @@ class Parser {
             return 0;
         }
         else {
+            if (type === 0 && value > this.integerCount) {
+                this.integerCount = value;
+            }
+            if (type === 1 && value > this.floatCount) {
+                this.floatCount = value;
+            }
             return 1;
         }
     }
 
     readBytes(value, bits, type = 0) {
+        let bitArray = [];
+        if (type % 2 === 1) {
+            let sign = Math.signum(value);
+            let magnitude = Math.abs(value);   
+            if (sign < 0) {
+                bitArray.push(1);
+            }
+            else {
+                bitArray.push(0);
+            }
+            
 
+        }
     }
 
     reportError(message, lineNumber) {
@@ -311,14 +331,32 @@ class Parser {
     }
 
     appendSection(bytes, index) {
-        this.wasm.push(index);
-        this.wasm.concat(this.readBytes(bytes.length, 32));
-        this.wasm.concat(bytes);
+        this.assembly.push(index);
+        this.assembly.concat(this.readBytes(bytes.length, 32));
+        this.assembly.concat(bytes);
+    }
+}
+
+class Definition {
+    constructor(title, content) {
+        this.title = title;
+        this.content = content;
     }
 }
 
 class Editor {
     constructor() {
+        this.audioContext = new AudioContext();
+        /// this.canvasContext = document.getElementById('canvas').getContext('2d');
+        this.assembly = undefined;
+        this.screen = 0;
+
+        let definitions = localStorage.getItem('definitions');
+        if (definitions === null || definitions === undefined) {
+            definitions = '{}';
+        }
+        this.definitions = JSON.parse(definitions);
+
         let textEntry = document.getElementById('textEntry');
         window.addEventListener('load', function() {
             let text = localStorage.getItem('text');
@@ -330,6 +368,7 @@ class Editor {
         textEntry.addEventListener('input', function() {
             localStorage.setItem('text', textEntry.value);
         });
+
         textEntry.oncut = function(event) {
             event.preventDefault();
         }
@@ -344,8 +383,9 @@ class Editor {
         }
     }
 
-    setColor(invert) {
-
+    instantiate(definition) {
+        this.assembly = (new Parser(definition.content)).assembly;
+        
     }
 }
 

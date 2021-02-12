@@ -52,7 +52,7 @@ body {
 #settings {
     position: absolute;
     left: 20px;
-    top: 20px;
+    top: 10px;
     width: 120px;
     height: fit-content;
     overflow: visible;
