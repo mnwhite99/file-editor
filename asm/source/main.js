@@ -34,16 +34,13 @@ class Parser {
             set: [3, [0x01, 0x01], [1, 1, 0, 0], 2],
             cbr: [3, [0x04, null], [1, 0, 1, 0], 0],
             msz: [3, [0x40, null], [1, 0, 0, 0], 1],
-            rd:  [2, [0x29, 0x2b], [1, 1, 0, 0], 2],
-            wr:  [2, [0x37, 0x39], [1, 0, 1, 0], 2],
-            lns: [1, [0x10, null], [1, 0, 1, 0], 0],
-            lnc: [1, [0x10, null], [1, 0, 1, 0], 0],
-            lnf: [1, [0x10, null], [1, 0, 1, 0], 0],
-            lnw: [1, [null, 0x10], [0, 1, 0, 1], 0],
-            lnx: [1, [null, 0x10], [0, 1, 0, 1], 0],
-            lny: [1, [null, 0x10], [0, 1, 0, 1], 0],
-            lna: [1, [null, 0x10], [0, 1, 0, 1], 0],
-            ctl: [2, [null, 0x10], [0, 1, 0, 1], 0]
+            lod: [2, [0x29, 0x2b], [1, 1, 0, 0], 2],
+            str: [2, [0x37, 0x39], [1, 0, 1, 0], 2],
+            x0:  [2, [null, 0x00], [0, 1, 0, 0], 0],
+            y0:  [2, [null, 0x00], [0, 1, 0, 0], 0],
+            x1:  [2, [null, 0x00], [0, 1, 0, 0], 0],
+            y1:  [2, [null, 0x00], [0, 1, 0, 0], 0],
+            kbd: [2, [null, 0x00], [0, 1, 0, 1], 0]
         };
         this.lineCount = lines.length;
         this.assembly.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
@@ -347,9 +344,7 @@ class Definition {
 class Editor {
     constructor() {
         this.audioContext = new AudioContext();
-        /// this.canvasContext = document.getElementById('canvas').getContext('2d');
         this.assembly = undefined;
-        this.screen = 0;
 
         let definitions = localStorage.getItem('definitions');
         if (definitions === null || definitions === undefined) {
@@ -378,7 +373,10 @@ class Editor {
         textEntry.onpaste = function(event) {
             event.preventDefault();
         }
-        textEntry.ondragstart = function(event) {
+        textEntry.ondrag = function(event) {
+            event.preventDefault();
+        }
+        textEntry.ondrop = function(event) {
             event.preventDefault();
         }
     }

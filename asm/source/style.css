@@ -1,7 +1,7 @@
 :root {
-    --bg: #ffffff;
-    --fg: #000000;
-    --hl: #000000fe;
+    --bg: #000000;
+    --fg: #ffffff;
+    --hl: #00000000;
 }
 
 body {
@@ -76,13 +76,12 @@ body {
     font-size: 16px;
     border-style: hidden;
     resize: none;
-    width: 860px;
+    width: 500px;
     height: 100%;
     padding: 0px;
     padding-top: 20px;
-    padding-left: 400px;
+    padding-left: 300px;
     padding-bottom: 20px;
-    padding-right: 120px;
     overflow-y: scroll;
     overflow-x: visible;
     overflow-wrap: normal;
@@ -96,12 +95,31 @@ body {
     outline: none;
 }
 
-#display {
+#state {
     position: absolute;
-    left: 880px;
+    left: 500px;
     top: 0px;
-    right: 0px;
+    width: 200px;
     bottom: 0px;
+    font-size: 10px;
+    border-style: hidden;
+    resize: none;
+    padding: 0px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow-y: scroll;
+    background-color: transparent;
+    line-height: 10px;
+
+}
+
+#contact {
+    position: absolute;
+    left: 500px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    background-color: transparent;
 }
 
 ::-webkit-scrollbar {
