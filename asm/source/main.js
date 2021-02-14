@@ -379,6 +379,9 @@ class Editor {
         textEntry.ondrop = function(event) {
             event.preventDefault();
         }
+        textEntry.onpointermove = function(event) {
+            event.preventDefault();
+        }
     }
 
     instantiate(definition) {
