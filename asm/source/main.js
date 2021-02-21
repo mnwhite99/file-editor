@@ -2,46 +2,43 @@ class Parser {
     constructor(string) {
         this.assembly = [];
         this.codeAssembly = [];
-        this.currentExpression = 0;
-        this.expressionAssembly = [];
-        this.usedExpressions = [];
-        this.expressionTable = [];
+        this.currentFunction = 0;
+        this.functionAssembly = [];
+        this.usedFunctionValues = [];
+        this.functionTable = [];
         this.errors = [];
         this.lineCount = 0;
         this.integerCount = 0;
         this.floatCount = 0;
-        let lines = string.split('\n');
-        this.parseLines(lines);
+        this.parseString(string);
     }
 
-    parseLines(lines) {
+    parseString(string) {
         let instructionSet = {
-            add: [4, [0x7c, 0xa0], [1, 1, 0, 0], 0],
-            sub: [4, [0x7d, 0xa1], [1, 1, 0, 0], 0],
-            mul: [4, [0x7e, 0xa2], [1, 1, 0, 0], 0],
-            div: [4, [0x7f, 0xa3], [1, 1, 0, 0], 0],
-            lt:  [4, [0x53, 0x63], [1, 0, 0, 0], 1],
-            gt:  [4, [0x55, 0x64], [1, 0, 0, 0], 1],
-            eq:  [4, [0x51, 0x61], [1, 0, 0, 0], 1],
-            leq: [4, [0x57, 0x65], [1, 0, 0, 0], 1],
-            geq: [4, [0x59, 0x66], [1, 0, 0, 0], 1],
-            neq: [4, [0x52, 0x62], [1, 0, 0, 0], 1],
-            and: [4, [0x83, null], [1, 0, 0, 0], 1],
-            ior: [4, [0x84, null], [1, 0, 0, 0], 1],
-            xor: [4, [0x85, null], [1, 0, 0, 0], 1],
-            sl:  [4, [0x86, null], [1, 0, 0, 0], 0],
-            sr:  [4, [0x87, null], [1, 0, 0, 0], 0],
-            set: [3, [0x01, 0x01], [1, 1, 0, 0], 2],
-            cbr: [3, [0x04, null], [1, 0, 1, 0], 0],
-            msz: [3, [0x40, null], [1, 0, 0, 0], 1],
-            lod: [2, [0x29, 0x2b], [1, 1, 0, 0], 2],
-            str: [2, [0x37, 0x39], [1, 0, 1, 0], 2],
-            x0:  [2, [null, 0x00], [0, 1, 0, 0], 0],
-            y0:  [2, [null, 0x00], [0, 1, 0, 0], 0],
-            x1:  [2, [null, 0x00], [0, 1, 0, 0], 0],
-            y1:  [2, [null, 0x00], [0, 1, 0, 0], 0],
-            kbd: [2, [null, 0x00], [0, 1, 0, 1], 0]
+            ctx: [4, [null, 0x00], ['144'       ], 0],
+            add: [4, [0x7c, 0xa0], ['044', '155'], 0],
+            sub: [4, [0x7d, 0xa1], ['044', '155'], 0],
+            mul: [4, [0x7e, 0xa2], ['044', '155'], 0],
+            div: [4, [0x7f, 0xa3], ['044', '155'], 0],
+            lt:  [4, [0x53, 0x63], ['044', '055'], 1],
+            gt:  [4, [0x55, 0x64], ['044', '055'], 1],
+            eq:  [4, [0x51, 0x61], ['044', '055'], 1],
+            leq: [4, [0x57, 0x65], ['044', '055'], 1],
+            geq: [4, [0x59, 0x66], ['044', '055'], 1],
+            neq: [4, [0x52, 0x62], ['044', '055'], 1],
+            and: [4, [0x83, null], ['044'       ], 0],
+            ior: [4, [0x84, null], ['044'       ], 0],
+            xor: [4, [0x85, null], ['044'       ], 0],
+            sl:  [4, [0x86, null], ['044'       ], 0],
+            sr:  [4, [0x87, null], ['044'       ], 0],
+            set: [3, [0x01, 0x01], ['04',  '15' ], 0],
+            cnv: [3, [0xb0, 0xb9], ['45',  '54' ], 0],
+            bif: [3, [0x04, null], ['44'        ], 0],
+            rd:  [3, [0x29, 0x2b], ['04',  '14' ], 0],
+            wr:  [3, [0x37, 0x39], ['44',  '45' ], 0],
+            sz:  [2, [0x40, null], ['04'        ], 1]
         };
+        let lines = string.split('\n');
         this.lineCount = lines.length;
         this.assembly.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
         for (let i = 0; i < lines.length; i++) {
@@ -61,6 +58,86 @@ class Parser {
     }
 
     parseLine(line, lineNumber, instructionSet) {
+        let operands = line.trim().split(' ').map(operand => operand.trim());
+
+        let operandsAssembly = [];
+        let instructionAssembly = [];
+        let destinationAssembly = [];
+
+        let typeString = '';
+
+        let instruction = operands[0];
+        let instructionKey = instructionSet[instruction];
+        if (instructionKey === undefined) {
+            if (operands.length === 1) {
+                let functionOperand = this.readOperand(operands[0]);
+                let functionType = functionOperand[0];
+                let functionValue = functionOperand[1];
+                if (functionType === undefined) {
+                    this.reportError('function type not recognized', lineNumber);
+                    return;
+                }
+                if (functionType !== 2) {
+                    this.reportError('function type not supported', lineNumber);
+                    return;
+                }
+                if (functionValue === undefined) {
+                    this.reportError('function value not recognized', lineNumber);
+                    return;
+                }
+                if (functionValue < 0 || functionValue >= 2 ^ 32) {
+                    this.reportError('function value not supported', lineNumber);
+                    return;
+                }
+                if (this.usedFunctionValues.includes(functionValue)) {
+                    this.reportError('function value already in use', lineNumber);
+                    return;
+                }
+                this.functionAssembly[0] = this.functionAssembly.length - 1; //
+                this.codeAssembly.concat(this.functionAssembly);
+                this.usedFunctionValues.push(functionValue);
+                this.currentFunctionValue = functionValue;
+                this.functionAssembly = [0x01, 0x01, 0x01, 0x01, 0x01];
+                return;
+            }
+            else {
+                this.reportError('instruction not recognized', lineNumber);
+                return;
+            }
+        }
+
+        let destination = operands[1];
+        let destinationOperand = this.readOperand(destination);
+        let destinationType = destinationOperand[0];
+        let destinationValue = destinationOperand[1];
+        if (destinationType === undefined) {
+            this.reportError('destination type not recognized', lineNumber);
+            return;
+        }
+        if (destinationValue === undefined) {
+            this.reportError('destination value not recognized', lineNumber);
+            return;
+        }
+        if (this.validateOperand(destinationOperand) === 0) {
+            this.reportError('destination value not supported', lineNumber);
+            return;
+        }
+
+        instructionAssembly.push(instructionKey[1][destinationType % 2]);
+        if (instruction === 'bif') {
+            instructionAssembly.concat([0x00, 0x11, 0x06]);
+        }
+        if (instruction === 'sz') {
+            instructionAssembly.push(0x00);
+        }
+
+        if (this.validateTypeString(typeString, instructionKey[2]) === 0) {
+            this.reportError('operand types not supported', lineNumber);
+            return;
+        }
+    }
+
+    parseLine_(line, lineNumber, instructionSet) {
         let operands = line.trim().split(' ').map(operand => operand.trim());
         if (operands.length === 0) {
             return;
@@ -146,7 +223,7 @@ class Parser {
             instructionAssembly.push(0x00);
         }
 
-        if (instruction === 'wr') {
+        if (instruction === 'str') {
             destinationAssembly.push(0x00);
             if (destinationType < 2) {
                 destinationAssembly.push(0x23);
@@ -163,10 +240,6 @@ class Parser {
             }
             destinationAssembly.concat([0x00, 0x0b]);
         }
-        else if (instruction.substring(0, 2) !== 'ln') {
-            destinationAssembly.push(0x24);
-            destinationAssembly.concat(this.readBytes(2 * destinationIndex + destinationType, 32));
-        }
 
         for (let i = 2; i < operands.length; i++) {
             let operand = this.readOperand(operands[i]);
@@ -176,7 +249,7 @@ class Parser {
                 this.reportError('operand type not recognized', lineNumber);
                 return;
             }
-            if (operandType % 2 !== destinationType && instructionInfo[3] !== 2) {
+            if (operandType % 2 !== destinationType && instructionInfo[4] !== 2) {
                 this.reportError('operand type not supported', lineNumber);
                 return;
             }
@@ -236,7 +309,7 @@ class Parser {
 
             let radix = 10;
             if (type !== 3) {
-                let prefix = operand.substring(0, 2)
+                let prefix = operand.substring(0, 2);
                 if (prefix === '0x') {
                     radix = 16;
                     valueString = valueString.substring(2);
@@ -327,6 +400,31 @@ class Parser {
         });
     }
 
+    validateTypeString(typeString, validTypeStrings) {
+        for (let i = 0; i < validTypeStrings.length; i++) {
+            for (let j = 0; j < typeString.length && j < validTypeStrings[i].length; j++) {
+                let typeCharacter = typeString[j];
+                let validTypeCharacter = validTypeStrings[i][j];
+                if (typeCharacter !== validTypeCharacter) {
+                    if (validTypeCharacter === '4') {
+                        if (typeCharacter === '1' || typeCharacter === '3') {
+                            return 0;
+                        }
+                    }
+                    else if (validTypeCharacter === '5') {
+                        if (typeCharacter === '0' || typeCharacter === '2') {
+                            return 0;
+                        }
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            }
+        }
+        return 1;
+    }
+
     appendSection(bytes, index) {
         this.assembly.push(index);
         this.assembly.concat(this.readBytes(bytes.length, 32));
@@ -343,7 +441,7 @@ class Definition {
 
 class Editor {
     constructor() {
-        this.audioContext = new AudioContext();
+        this.audioContext = new window.AudioContext() || new window.webkitAudioContext();
         this.assembly = undefined;
 
         let definitions = localStorage.getItem('definitions');
@@ -352,7 +450,22 @@ class Editor {
         }
         this.definitions = JSON.parse(definitions);
 
+        let definition = document.getElementById('definition');
+        let definitionText = definition.value;
         let textEntry = document.getElementById('textEntry');
+        this.inlay(textEntry);
+        this.inlay(definition);
+
+        definition.addEventListener('input', function() {
+            definitionText = definition.value;
+            localStorage.setItem('definition', definitionText);
+            if (definitionText === '') {
+                textEntry.oninput = function(event) {
+                    event.preventDefault();
+                }
+            }
+        });
+
         window.addEventListener('load', function() {
             let text = localStorage.getItem('text');
             if (text === undefined || text === null) {
@@ -363,30 +476,42 @@ class Editor {
         textEntry.addEventListener('input', function() {
             localStorage.setItem('text', textEntry.value);
         });
-
-        textEntry.oncut = function(event) {
-            event.preventDefault();
-        }
-        textEntry.oncopy = function(event) {
-            event.preventDefault();
-        }
-        textEntry.onpaste = function(event) {
-            event.preventDefault();
-        }
-        textEntry.ondrag = function(event) {
-            event.preventDefault();
-        }
-        textEntry.ondrop = function(event) {
-            event.preventDefault();
-        }
-        textEntry.onpointermove = function(event) {
-            event.preventDefault();
+        window.onselect = function() {
+            window.getSelection().collapseToStart();
         }
     }
 
     instantiate(definition) {
         this.assembly = (new Parser(definition.content)).assembly;
-        
+        while (1) {
+
+        }
+        let processorNode = new AudioWorkletNode(this.audioContext, 'compiledProcessor');
+        processorNode.connect(this.audioContext.destination);
+    }
+
+    inlay(element) {
+        element.oncut = function(event) {
+            event.preventDefault();
+        }
+        element.oncopy = function(event) {
+            event.preventDefault();
+        }
+        element.onpaste = function(event) {
+            event.preventDefault();
+        }
+        element.ondrag = function(event) {
+            event.preventDefault();
+        }
+        element.ondrop = function(event) {
+            event.preventDefault();
+        }
+        element.onpointermove = function(event) {
+            event.preventDefault();
+        }
+        element.oncontextmenu = function(event) {
+            event.preventDefault();
+        }
     }
 }
 
