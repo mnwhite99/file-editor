@@ -1,21 +1,20 @@
 class Parser {
-    constructor(string) {
+    constructor(text) {
         this.assembly = [];
         this.codeAssembly = [];
-        this.currentFunction = 0;
         this.functionAssembly = [];
         this.usedFunctionValues = [];
-        this.functionTable = [];
+        this.currentFunctionValue = 0;
         this.errors = [];
         this.lineCount = 0;
         this.integerCount = 0;
         this.floatCount = 0;
-        this.parseString(string);
+        this.parseText(text);
     }
 
-    parseString(string) {
+    parseText(text) {
         let instructionSet = {
-            ctx: [4, [null, 0x00], ['144'       ], 0],
+            buf: [4, [null, 0x00], ['144'       ], 0],
             add: [4, [0x7c, 0xa0], ['044', '155'], 0],
             sub: [4, [0x7d, 0xa1], ['044', '155'], 0],
             mul: [4, [0x7e, 0xa2], ['044', '155'], 0],
@@ -32,21 +31,21 @@ class Parser {
             sl:  [4, [0x86, null], ['044'       ], 0],
             sr:  [4, [0x87, null], ['044'       ], 0],
             set: [3, [0x01, 0x01], ['04',  '15' ], 0],
-            cnv: [3, [0xb0, 0xb9], ['45',  '54' ], 0],
+            cvt: [3, [0xb0, 0xb9], ['05',  '14' ], 0],
             bif: [3, [0x04, null], ['44'        ], 0],
             rd:  [3, [0x29, 0x2b], ['04',  '14' ], 0],
             wr:  [3, [0x37, 0x39], ['44',  '45' ], 0],
             sz:  [2, [0x40, null], ['04'        ], 1]
         };
-        let lines = string.split('\n');
+        let lines = text.split('\n');
         this.lineCount = lines.length;
         this.assembly.concat([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
         for (let i = 0; i < lines.length; i++) {
             this.parseLine(line, i, instructionSet);
         }
         this.appendSection(this.codeAssembly, 10);
-        let functionTypes = this.readBytes(this.usedExpressions.length, 32);
-        for (let i = 0; i < this.usedExpressions.length; i++) {
+        let functionTypes = this.readBytes(this.usedFunctionValues.length, 32);
+        for (let i = 0; i < this.usedFunctionValues.length; i++) {
             functionTypes.concat([0x60, 0x00]);
         }
         this.appendSection(functionTypes, 3);
@@ -77,23 +76,26 @@ class Parser {
                     this.reportError('function type not recognized', lineNumber);
                     return;
                 }
-                if (functionType !== 2) {
+                else if (functionType !== 2) {
                     this.reportError('function type not supported', lineNumber);
                     return;
                 }
-                if (functionValue === undefined) {
+                else if (functionValue === undefined) {
                     this.reportError('function value not recognized', lineNumber);
                     return;
                 }
-                if (functionValue < 0 || functionValue >= 2 ^ 32) {
+                else if (functionValue < 0 || functionValue >= 2 ^ 32) {
                     this.reportError('function value not supported', lineNumber);
                     return;
                 }
-                if (this.usedFunctionValues.includes(functionValue)) {
+                else if (this.usedFunctionValues.includes(functionValue)) {
                     this.reportError('function value already in use', lineNumber);
                     return;
                 }
-                this.functionAssembly[0] = this.functionAssembly.length - 1; //
+                let functionCodeLength = this.readBytes(this.functionAssembly.length - 5, 33);
+                for (let i = 0; i < 5; i++) {
+                    this.functionAssembly[i] = functionCodeLength[i];
+                }
                 this.codeAssembly.concat(this.functionAssembly);
                 this.usedFunctionValues.push(functionValue);
                 this.currentFunctionValue = functionValue;
@@ -114,131 +116,35 @@ class Parser {
             this.reportError('destination type not recognized', lineNumber);
             return;
         }
-        if (destinationValue === undefined) {
+        else if (destinationValue === undefined) {
             this.reportError('destination value not recognized', lineNumber);
             return;
         }
-        if (this.validateOperand(destinationOperand) === 0) {
+        else if (this.validateOperand(destinationOperand) === 0) {
             this.reportError('destination value not supported', lineNumber);
             return;
         }
+        else if (instruction === 'bif') {
+            destinationAssembly.concat([0x00, 0x11, 0x06]);
+            if (destinationType === 0) {
+                destinationAssembly.push(0x23);
+                destinationAssembly.concat(this.readBytes(2 * destinationValue, 32, 0));
+            }
+            if (destinationType === 2) {
+                destinationAssembly.concat(this.readBytes(destinationValue, 32, 0));
+            }
+        }
+        else if (instruction !== 'wr') {
+            destinationAssembly.push(0x24);
+            destinationAssembly.concat(this.readBytes(destinationValue, 32));
+        }
 
         instructionAssembly.push(instructionKey[1][destinationType % 2]);
-        if (instruction === 'bif') {
-            instructionAssembly.concat([0x00, 0x11, 0x06]);
-        }
         if (instruction === 'sz') {
             instructionAssembly.push(0x00);
         }
-
-        if (this.validateTypeString(typeString, instructionKey[2]) === 0) {
-            this.reportError('operand types not supported', lineNumber);
-            return;
-        }
-    }
-
-    parseLine_(line, lineNumber, instructionSet) {
-        let operands = line.trim().split(' ').map(operand => operand.trim());
-        if (operands.length === 0) {
-            return;
-        }
-
-        let operandsAssembly = [];
-        let instructionAssembly = [];
-        let destinationAssembly = [];
-
-        let instruction = operands[0];    
-        let instructionInfo = instructionSet[instruction];
-        if (instructionInfo === undefined) {
-            if (operands.length === 1) {
-                let expressionOperand = this.readOperand(operands[0]);
-                let expressionType = expressionOperand[0];
-                let expressionIndex = expressionOperand[1];
-                if (expressionType === undefined) {
-                    this.reportError('expression type not recognized', lineNumber);
-                    return;
-                }
-                if (expressionType !== 2) {
-                    this.reportError('expression type not supported', lineNumber);
-                    return;
-                }
-                if (expressionIndex === undefined) {
-                    this.reportError('expression index not recognized', lineNumber);
-                    return;
-                }
-                if (expressionIndex < 0 || expressionIndex >= 2 ^ 32) {
-                    this.reportError('expression index not supported', lineNumber);
-                    return;
-                }
-                if (this.usedExpressions.contains(expressionIndex)) {
-                    this.reportError('expression index already in use', lineNumber);
-                    return;
-                }
-                if (expressionIndex === 0x40) {
-                    expressionIndex = 0xff;
-                }
-                this.expressionAssembly[0] = expressionAssembly.length - 1;
-                this.codeAssembly.concat(this.expressionAssembly);
-                this.usedExpressions.push(expressionIndex);
-                this.currentExpression = expressionIndex;
-                this.expressionAssembly = [0x00];
-                return;
-            }
-            else {
-                this.reportError('instruction not supported', lineNumber);
-                return;
-            }
-        }
-        if (operands.length === 1) {
-            this.reportError('destination not specified', lineNumber);
-            return;
-        }
-
-        destinationAssembly = [];
-        let destinationOperand = this.readOperand(operands[1]);
-        let destinationType = destinationOperand[0];
-        let destinationIndex = destinationOperand[1];
-        if (destinationType === undefined) {
-            this.reportError('destination type not recognized', lineNumber);
-            return;
-        }
-        if (instructionInfo[2][destinationType] === 0) {
-            this.reportError('destination type not supported', lineNumber);
-            return;
-        }
-        if (destinationIndex === undefined) {
-            this.reportError('destination index not recognized', lineNumber);
-            return;
-        }
-        if (this.validateOperand(destinationOperand) === 0) {
-            this.reportError('destination index not supported', lineNumber);
-            return;
-        }
-
-        instructionAssembly.push(instructionInfo[1][destinationType % 2]);
-        if (instruction === 'cbr') {
-            instructionAssembly.concat([0x00, 0x11, 0x06]);
-        }
-        if (instruction === 'msz') {
-            instructionAssembly.push(0x00);
-        }
-
-        if (instruction === 'str') {
-            destinationAssembly.push(0x00);
-            if (destinationType < 2) {
-                destinationAssembly.push(0x23);
-            }
-            destinationAssembly.concat(this.readBytes(destinationIndex, 32));
-        }
-        else if (instruction === 'cbr') {
-            if (destinationType === 0) {
-                destinationAssembly.push(0x23);
-                destinationAssembly.concat(this.readBytes(2 * destinationIndex, 32));
-            }
-            if (destinationType === 2) {
-                destinationAssembly.concat(this.readBytes(destinationIndex, 32));
-            }
-            destinationAssembly.concat([0x00, 0x0b]);
+        else if (instruction === 'rd' || instruction === 'wr') {
+            instructionAssembly.concat([0x05, 0x00]);
         }
 
         for (let i = 2; i < operands.length; i++) {
@@ -249,39 +155,40 @@ class Parser {
                 this.reportError('operand type not recognized', lineNumber);
                 return;
             }
-            if (operandType % 2 !== destinationType && instructionInfo[4] !== 2) {
-                this.reportError('operand type not supported', lineNumber);
-                return;
-            }
-            if (operandValue === undefined) {
+            else if (operandValue === undefined) {
                 this.reportError('operand value not recognized', lineNumber);
                 return;
             }
-            if (this.validateOperand(operand) === 0) {
+            else if (this.validateOperand(operand) === 0) {
                 this.reportError('operand value not supported', lineNumber);
                 return;
             }
-            if (operandType < 2) {
+            else if (operandType < 2) {
                 operandsAssembly.push(0x24);
-                operandsAssembly.push(this.readBytes(2 * operandValue + operandType, 32));
+                operandsAssembly.concat(this.readBytes(2 * operandValue + operandType, 32, 0));
             }
-            if (operandType >= 2) {
+            else {
                 operandsAssembly.push([0x42, 0x44][operandType - 2]);
                 operandsAssembly.push(this.readBytes(operandValue, 64, operandType));
             }
-            if (instruction === 'set' && operandType % 2 !== destinationType) {
-                if (destinationType === 0) {
-                    operandsAssembly.push(0xb0);
-                }
-                else {
-                    operandsAssembly.push(0xb9);
-                }
+            if (instruction === 'rd') {
+                operandsAssembly.concat(0x08, 0x00);
             }
         }
 
-        this.expressionAssembly.concat(operandsAssembly);
-        this.expressionAssembly.concat(instructionAssembly);
-        this.expressionAssembly.concat(destinationAssembly);     
+        if (instruction === 'wr') {
+            operandsAssembly.push(0x24);
+            operandsAssembly.concat(this.readBytes(destinationValue, 32, 0));
+        }
+
+        if (this.validateTypeString(typeString, instructionKey[2]) === 0) {
+            this.reportError('operand types not supported', lineNumber);
+            return;
+        }
+
+        this.functionAssembly.concat(operandsAssembly);
+        this.functionAssembly.concat(instructionAssembly);
+        this.functionAssembly.concat(destinationAssembly);
     }
 
     readOperand(operand) {
@@ -377,7 +284,7 @@ class Parser {
         }
     }
 
-    readBytes(value, bits, type = 0) {
+    readBytes(value, bits, type) {
         let bitArray = [];
         if (type % 2 === 1) {
             let sign = Math.signum(value);
@@ -453,8 +360,8 @@ class Editor {
         let definition = document.getElementById('definition');
         let definitionText = definition.value;
         let textEntry = document.getElementById('textEntry');
-        this.inlay(textEntry);
-        this.inlay(definition);
+        this.protectTextArea(textEntry);
+        this.protectTextArea(definition);
 
         definition.addEventListener('input', function() {
             definitionText = definition.value;
@@ -481,6 +388,30 @@ class Editor {
         }
     }
 
+    protectTextArea(textArea) {
+        textArea.oncut = function(event) {
+            event.preventDefault();
+        }
+        textArea.oncopy = function(event) {
+            event.preventDefault();
+        }
+        textArea.onpaste = function(event) {
+            event.preventDefault();
+        }
+        textArea.ondrag = function(event) {
+            event.preventDefault();
+        }
+        textArea.ondrop = function(event) {
+            event.preventDefault();
+        }
+        textArea.onpointermove = function(event) {
+            event.preventDefault();
+        }
+        textArea.oncontextmenu = function(event) {
+            event.preventDefault();
+        }
+    }
+    
     instantiate(definition) {
         this.assembly = (new Parser(definition.content)).assembly;
         while (1) {
@@ -488,30 +419,6 @@ class Editor {
         }
         let processorNode = new AudioWorkletNode(this.audioContext, 'compiledProcessor');
         processorNode.connect(this.audioContext.destination);
-    }
-
-    inlay(element) {
-        element.oncut = function(event) {
-            event.preventDefault();
-        }
-        element.oncopy = function(event) {
-            event.preventDefault();
-        }
-        element.onpaste = function(event) {
-            event.preventDefault();
-        }
-        element.ondrag = function(event) {
-            event.preventDefault();
-        }
-        element.ondrop = function(event) {
-            event.preventDefault();
-        }
-        element.onpointermove = function(event) {
-            event.preventDefault();
-        }
-        element.oncontextmenu = function(event) {
-            event.preventDefault();
-        }
     }
 }
 
