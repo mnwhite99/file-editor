@@ -20,7 +20,7 @@ textarea {
     line-height: 20px;
 }
 
-#textEntry {
+#symbols {
     position: absolute;
     left: 0px;
     top: 0px;
@@ -36,7 +36,7 @@ textarea {
     cursor: default;
 }
 
-#textEntry:focus {
+#symbols:focus {
     outline: none;
 }
 
