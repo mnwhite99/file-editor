@@ -52,19 +52,19 @@ else if ( inlinePosition === 8  && symbol !== ' '  ) error       = 1
 else if ( inlinePosition === 9                     ) operand_2   = symbol
 else if ( inlinePosition === 10                    ) error       = 1
 if      (            opcodes [ operator ] ==  null ) error       = 1
-if      (          error === 1                     ) break
+if      (          error === 1                     ) return
 else if (      immediate === 0  && symbol === '\n' ) {
 code [ 'concat' ] ( [ 0x23 ] ,                     [ operand_1 [ 'charCodeAt' ] ( 0 ) ] ,
                     [ 0x23 ] ,                     [ operand_2 [ 'charCodeAt' ] ( 0 ) ] ,
                      opcodes [ operator ] )
         }
+else if (      immediate === 1  && symbol !== ' '  ) operand_1   = operand_1 + symbol
 else if (      immediate === 1  && symbol === '\n' ) {
                                                      operand_1   = parseFloat ( operand_1 )
                                dv [ 'setFloat64' ] ( operand_1   , 1 )
 code [ 'concat' ] ( [ 0x44 ] , dv [ 'getFloat64' ] ( 0 , 1 ) [ 'buffer' ],
                     [ 0x24 ] ,    [  destination [ 'charCodeAt' ] ( 0 ) ] )
         }
-else if (      immediate === 1  && symbol !== ' '  ) operand_1   = operand_1 + symbol
         }
 }
 window [ 'onload' ] = function ( ) {
