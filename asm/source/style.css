@@ -1,78 +1,31 @@
-:root {
-    --bg: #000000;
-    --fg: #ffffff;
-}
-
 body {
     position: absolute;
     left: 0px;
     right: 0px;
     top: 0px;
     bottom: 0px;
-    font-family: monospace;
-    font-size: 16px;
     margin: 0px;
     padding: 0px;
     overflow: hidden;
-    flex: 0px;
-    color: var(--fg);
-    background-color: var(--bg);
-    caret-color: var(--fg);
+}
+
+textarea {
+    background-color: #ffffff;
+    color: #000000;
+    font-family: monospace;
+    font-size: 16px;
+    border-style: hidden;
+    resize: none;
+    padding: 0px;
     line-height: 20px;
-}
-
-.touchControl {
-    position: absolute;
-    height: calc(80px - 2px);
-    width: calc(80px - 2px);
-    border: 1px solid var(--fg);
-    border-bottom-width: 1px;
-    text-align: center;
-    line-height: calc(80px - 2px);
-    cursor: pointer;
-    user-select: none;
-}
-
-.touchControl:hover {
-    color: var(--bg);
-    background-color: var(--fg);
-}
-
-.touchControl:active {
-    color: var(--bg);
-    background-color: var(--fg);
-}
-
-#settings {
-    position: absolute;
-    left: 20px;
-    top: 10px;
-    width: 120px;
-    height: fit-content;
-    overflow: visible;
-    user-select: none;
-}
-
-.clickText {
-    line-height: 40px;
-    text-decoration: none;
-}
-
-.clickText:hover {
-    cursor: pointer;
-    text-decoration: underline;
 }
 
 #textEntry {
     position: absolute;
     left: 0px;
     top: 0px;
-    width: 100%;
+    width: 1000%;
     height: 100%;
-    font-size: 16px;
-    border-style: hidden;
-    resize: none;
-    padding: 0px;
     padding-top: 20px;
     padding-left: 300px;
     padding-bottom: 20px;
@@ -80,23 +33,34 @@ body {
     overflow-x: visible;
     overflow-wrap: normal;
     scrollbar-width: none;
-    color: var(--fg);
-    background-color: transparent;
-    caret-color: var(--fg);
-    line-height: 20px;
     cursor: default;
-}:focus {
+}
+
+#textEntry:focus {
     outline: none;
 }
 
-::-webkit-scrollbar {
-    width: 0px;
+#definition {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 180px;
+    height: 40px;
+    overflow-y: none;
+    overflow-x: none;
+    overflow-wrap: normal;
+    cursor: pointer;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+#definition:focus {
+    outline: none;
+    text-decoration: underline;
 }
 
-::-webkit-scrollbar-thumb {
-    background: transparent;
+#definition:hover {
+    text-decoration: underline;
+}
+
+::selection {
+    background-color: #00000000;
 }
