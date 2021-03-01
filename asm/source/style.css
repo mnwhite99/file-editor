@@ -9,17 +9,6 @@ body {
     overflow: hidden;
 }
 
-textarea {
-    background-color: #ffffff;
-    color: #000000;
-    font-family: monospace;
-    font-size: 16px;
-    border-style: hidden;
-    resize: none;
-    padding: 0px;
-    line-height: 20px;
-}
-
 #symbols {
     position: absolute;
     left: 0px;
@@ -33,32 +22,18 @@ textarea {
     overflow-x: visible;
     overflow-wrap: normal;
     scrollbar-width: none;
+    font-family: monospace;
+    line-height: 20px;
+    font-size: 16px;
+    border-style: hidden;
     cursor: default;
+    resize: none;
+    background-color: #ffffff;
+    color: #000000;
 }
 
 #symbols:focus {
     outline: none;
-}
-
-#definition {
-    position: absolute;
-    left: 20px;
-    top: 20px;
-    width: 180px;
-    height: 40px;
-    overflow-y: none;
-    overflow-x: none;
-    overflow-wrap: normal;
-    cursor: pointer;
-}
-
-#definition:focus {
-    outline: none;
-    text-decoration: underline;
-}
-
-#definition:hover {
-    text-decoration: underline;
 }
 
 ::selection {
