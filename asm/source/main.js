@@ -26,11 +26,11 @@ let opcodes      = {             }
 let floatBuffer  = new DataView ( new Float64Array ( 1 ) [ 'buffer' ] )
 document [ 'getElementById' ] ( 'symbols' ) [ 'oninput' ] = function ( ) {
  code           = [ ]
- symbols        = document [ 'getElementById' ] ( 'symbols' ) [ 'value' ]
+ symbols        = document [ 'getElementById' ] ( 'symbols' )
  symbolPosition = 1
- localStorage [ 'setItem' ] ( 'symbols' , symbols )
- while ( symbolPosition <= symbols [ 'length' ] ) {
-  symbol = symbols [ symbolPosition - 1 ]
+ localStorage [ 'setItem' ] ( 'symbols' , symbols [ 'value' ] )
+ while ( symbolPosition <= symbols [ 'value' ] [ 'length' ] ) {
+  symbol = symbols [ 'value' ] [ symbolPosition - 1 ]
   if ( symbol === '\n' ) {
    newLinePosition = symbolPosition
   }
@@ -53,7 +53,6 @@ document [ 'getElementById' ] ( 'symbols' ) [ 'oninput' ] = function ( ) {
   else if ( inlinePosition === 3 && symbol === '(' ) read        = 1
   else if ( inlinePosition === 3 && symbol === ')' ) write       = 1
   else if ( inlinePosition === 3 && symbol !== '=' ) error       = 1
-  else if (      immediate === 1 && symbol === ' ' ) error       = 1
   else if ( inlinePosition === 4 && symbol !== ' ' ) error       = 1
   else if ( inlinePosition === 5 && symbol === '$' ) immediate   = 1
   else if ( inlinePosition === 5                   ) operand_1   = symbol
@@ -88,5 +87,13 @@ document [ 'getElementById' ] ( 'symbols' ) [ 'oninput' ] = function ( ) {
  }
 }
 window [ 'onload' ] = function ( ) {
- document [ 'getElementById' ] ( 'symbols' ) [ 'innerHTML' ] = localStorage [ 'getItem' ] ( 'symbols' )
+ symbols                     = document [ 'getElementById' ] ( 'symbols' )
+ symbols [ 'innerHTML'     ] = localStorage [ 'getItem' ] ( 'symbols' )
+ symbols [ 'oncut'         ] =
+ symbols [ 'oncopy'        ] =
+ symbols [ 'onpaste'       ] =
+ symbols [ 'ondrag'        ] =
+ symbols [ 'ondrop'        ] =
+ symbols [ 'onpointermove' ] =
+ symbols [ 'oncontextmenu' ] = function ( event ) { event [ 'preventDefault' ] ( ) }
 }
